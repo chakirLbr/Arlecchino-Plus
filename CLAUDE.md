@@ -4,244 +4,325 @@ This document provides essential context for AI assistants working on the Arlecc
 
 ## Project Overview
 
-**Arlecchino-Plus** is a restaurant management/restaurant-themed application. The project is currently in its initial setup phase.
+**Arlecchino Plus** is a full-featured restaurant website for a pizzeria in Haan, Germany. The application provides online ordering, table reservations, order tracking, and a restaurant admin dashboard.
 
-### Current State
-- **Status**: Early development (repository initialization)
-- **Primary Branch**: `main` or designated feature branches
-- **Repository**: Git-based version control
+### Business Information
+- **Name**: Arlecchino Plus (Pizzeria)
+- **Location**: Kölner Str. 1, 42781 Haan, Germany
+- **Phone**: 02129 6663
+- **Instagram**: @pizzeria_arlecchino_plus
+- **Chef**: Tonino Pisano (award-winning pizzaiolo)
+
+### Key Features
+- Online ordering (delivery + pickup)
+- Real-time order tracking
+- Table reservations
+- Payment processing (Stripe, PayPal)
+- Admin dashboard for restaurant management
+- Multi-language support (DE/EN)
+
+## Tech Stack
+
+### Frontend
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **UI Components**: Radix UI + shadcn/ui patterns
+- **State Management**: Zustand (cart)
+- **Forms**: React Hook Form + Zod validation
+
+### Backend
+- **Runtime**: Next.js API Routes
+- **Database**: PostgreSQL
+- **ORM**: Prisma
+- **Authentication**: Jose (JWT)
+- **Payments**: Stripe, PayPal
+
+### Infrastructure
+- **Hosting**: Vercel (recommended)
+- **Database**: Supabase / Neon / PlanetScale
+- **Email**: Resend
+- **Rate Limiting**: Upstash Redis
 
 ## Repository Structure
 
 ```
 Arlecchino-Plus/
-├── CLAUDE.md           # AI assistant guidelines (this file)
-├── README.md           # Project description
-└── [To be established] # Source code and configuration
+├── docs/
+│   └── ARCHITECTURE.md     # Detailed architecture documentation
+├── prisma/
+│   └── schema.prisma       # Database schema
+├── public/
+│   └── images/             # Static images
+├── src/
+│   ├── app/                # Next.js App Router pages
+│   │   ├── admin/          # Admin dashboard pages
+│   │   ├── bestellung/     # Order tracking
+│   │   ├── kontakt/        # Contact page
+│   │   ├── reservierung/   # Reservations
+│   │   ├── speisekarte/    # Menu & ordering
+│   │   ├── ueber-uns/      # About page
+│   │   ├── impressum/      # Legal - Imprint
+│   │   ├── datenschutz/    # Legal - Privacy
+│   │   ├── layout.tsx      # Root layout
+│   │   ├── page.tsx        # Home page
+│   │   └── globals.css     # Global styles
+│   ├── components/
+│   │   ├── layout/         # Header, Footer
+│   │   └── ui/             # Reusable UI components
+│   ├── lib/
+│   │   ├── db.ts           # Prisma client
+│   │   ├── utils.ts        # Utility functions
+│   │   └── validations.ts  # Zod schemas
+│   ├── store/
+│   │   └── cart.ts         # Cart state (Zustand)
+│   └── i18n/
+│       └── config.ts       # Translations
+├── .env.example            # Environment variables template
+├── package.json
+├── tailwind.config.ts
+├── tsconfig.json
+├── next.config.js
+└── CLAUDE.md               # This file
 ```
 
-### Planned Structure (To Be Implemented)
-As the project develops, expect a structure similar to:
-```
-Arlecchino-Plus/
-├── src/                # Source code
-│   ├── components/     # UI components (if frontend)
-│   ├── services/       # Business logic
-│   ├── models/         # Data models
-│   ├── utils/          # Utility functions
-│   └── index.*         # Entry point
-├── tests/              # Test files
-├── docs/               # Documentation
-├── config/             # Configuration files
-├── public/             # Static assets (if web app)
-├── package.json        # Dependencies (Node.js)
-├── tsconfig.json       # TypeScript config (if TS)
-└── README.md           # Project documentation
-```
+## Development Commands
 
-## Development Guidelines
-
-### For AI Assistants
-
-#### Before Making Changes
-1. **Read existing code** before proposing modifications
-2. **Understand the context** - check related files and dependencies
-3. **Follow existing patterns** - match the code style already in use
-4. **Check for tests** - ensure changes don't break existing functionality
-
-#### Code Quality Standards
-- Write clean, readable, and maintainable code
-- Keep functions focused and small (single responsibility)
-- Use meaningful variable and function names
-- Add comments only when logic isn't self-evident
-- Avoid over-engineering - implement only what's requested
-
-#### Security Considerations
-- Never hardcode secrets, API keys, or credentials
-- Validate all user inputs at system boundaries
-- Be aware of OWASP Top 10 vulnerabilities
-- Use parameterized queries for database operations
-- Sanitize outputs to prevent XSS
-
-### Git Workflow
-
-#### Branch Naming
-- Feature branches: `feature/<description>`
-- Bug fixes: `fix/<description>`
-- Claude AI branches: `claude/<session-identifier>`
-
-#### Commit Messages
-Write clear, descriptive commit messages:
-```
-<type>: <short description>
-
-[optional body with more details]
-```
-
-Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
-
-#### Before Committing
-1. Review all changes with `git diff`
-2. Stage specific files (avoid `git add -A` for large changes)
-3. Never commit sensitive files (.env, credentials, etc.)
-4. Ensure tests pass (when test suite exists)
-
-## Commands Reference
-
-### Development (To Be Configured)
 ```bash
-# Install dependencies (when package.json exists)
-npm install          # or yarn install
-
-# Start development server
-npm run dev          # or yarn dev
-
-# Run tests
-npm test             # or yarn test
-
-# Build for production
-npm run build        # or yarn build
-
-# Lint code
-npm run lint         # or yarn lint
-```
-
-### Git Operations
-```bash
-# Check status
-git status
-
-# View changes
-git diff
-
-# Create feature branch
-git checkout -b feature/<name>
-
-# Commit changes
-git add <files>
-git commit -m "type: description"
-
-# Push to remote
-git push -u origin <branch-name>
-```
-
-## Coding Conventions
-
-### General Principles
-1. **Consistency** - Follow existing patterns in the codebase
-2. **Simplicity** - Prefer simple solutions over complex ones
-3. **Readability** - Code should be self-documenting where possible
-4. **Testability** - Write code that can be easily tested
-
-### Style Guidelines (To Be Established)
-When a linter/formatter is configured, follow its rules. Until then:
-- Use consistent indentation (2 or 4 spaces, match existing code)
-- Use descriptive names for variables and functions
-- Keep lines reasonably short (80-120 characters)
-- Group related code together
-
-### Error Handling
-- Handle errors gracefully at appropriate boundaries
-- Provide meaningful error messages
-- Log errors with sufficient context for debugging
-- Don't swallow errors silently
-
-## Testing Guidelines
-
-### Test Structure (When Implemented)
-```
-tests/
-├── unit/           # Unit tests
-├── integration/    # Integration tests
-└── e2e/            # End-to-end tests (if applicable)
-```
-
-### Testing Principles
-- Write tests for new functionality
-- Maintain existing test coverage
-- Test edge cases and error scenarios
-- Keep tests focused and independent
-
-## Documentation
-
-### Code Documentation
-- Document public APIs and interfaces
-- Add JSDoc/TSDoc comments for exported functions
-- Keep README.md updated with setup instructions
-
-### When to Document
-- Complex algorithms or business logic
-- Non-obvious design decisions
-- API endpoints and their parameters
-- Configuration options
-
-## Dependencies
-
-### Adding Dependencies
-1. Verify the package is actively maintained
-2. Check for known vulnerabilities
-3. Consider bundle size impact
-4. Prefer well-established packages
-
-### Updating Dependencies
-- Review changelogs before major version updates
-- Run tests after updating
-- Update lock files appropriately
-
-## Environment Setup
-
-### Prerequisites (To Be Defined)
-- Node.js (version TBD)
-- npm or yarn
-- Git
-
-### Local Development
-```bash
-# Clone repository
-git clone <repository-url>
-cd Arlecchino-Plus
-
 # Install dependencies
 npm install
 
-# Start development
+# Start development server
 npm run dev
+
+# Build for production
+npm run build
+
+# Run production build
+npm start
+
+# Lint code
+npm run lint
+
+# Type check
+npm run type-check
+
+# Database commands
+npm run db:generate    # Generate Prisma client
+npm run db:push        # Push schema to database
+npm run db:migrate     # Run migrations
+npm run db:studio      # Open Prisma Studio
+npm run db:seed        # Seed database
+
+# Testing
+npm test
 ```
 
-## Troubleshooting
+## Environment Variables
 
-### Common Issues
-1. **Dependencies not installing**: Clear node_modules and lock file, reinstall
-2. **Build failures**: Check Node.js version compatibility
-3. **Test failures**: Ensure test environment is properly configured
+Copy `.env.example` to `.env.local` for development. Required variables:
 
-### Getting Help
-- Check existing documentation
-- Review similar code patterns in the codebase
-- Consult project maintainers for architectural questions
+```
+DATABASE_URL          # PostgreSQL connection string
+JWT_SECRET            # Secret for auth tokens
+STRIPE_SECRET_KEY     # Stripe API key
+STRIPE_WEBHOOK_SECRET # Stripe webhook secret
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+RESEND_API_KEY        # Email service
+UPSTASH_REDIS_REST_URL    # Rate limiting
+UPSTASH_REDIS_REST_TOKEN
+```
 
-## Notes for AI Assistants
+## Key Pages & Routes
 
-### Do's
-- Ask clarifying questions when requirements are ambiguous
-- Break down complex tasks into smaller steps
-- Verify changes work before considering complete
-- Use the TodoWrite tool for multi-step tasks
-- Read files before modifying them
+### Public Routes
+| Route | Description |
+|-------|-------------|
+| `/` | Home page |
+| `/speisekarte` | Menu & ordering |
+| `/speisekarte/checkout` | Checkout flow |
+| `/bestellung/[orderId]` | Order tracking |
+| `/reservierung` | Table reservations |
+| `/ueber-uns` | About & awards |
+| `/kontakt` | Contact information |
+| `/impressum` | Legal imprint |
+| `/datenschutz` | Privacy policy |
 
-### Don'ts
-- Don't make assumptions about missing requirements
-- Don't over-engineer solutions
-- Don't add unnecessary dependencies
-- Don't modify files outside the scope of the request
-- Don't commit without explicit user approval
+### Admin Routes (Protected)
+| Route | Description |
+|-------|-------------|
+| `/admin` | Dashboard overview |
+| `/admin/bestellungen` | Orders management |
+| `/admin/speisekarte` | Menu management |
+| `/admin/reservierungen` | Reservations calendar |
+| `/admin/statistiken` | Analytics |
+| `/admin/einstellungen` | Settings |
 
-### When Stuck
-1. Re-read the requirements carefully
-2. Check for related code or patterns
-3. Consider alternative approaches
-4. Ask the user for clarification
+## Database Models
+
+Key entities (see `prisma/schema.prisma` for full schema):
+
+- **Category** - Menu categories (Pizza, Pasta, etc.)
+- **MenuItem** - Individual menu items with pricing
+- **MenuItemSize** - Size variants (Klein, Normal, Groß)
+- **AddOn** - Extra toppings/additions
+- **Order** - Customer orders
+- **OrderItem** - Items within an order
+- **Reservation** - Table reservations
+- **AdminUser** - Restaurant staff accounts
+- **DeliveryZone** - Delivery areas with fees
+
+## Coding Conventions
+
+### TypeScript
+- Use strict mode
+- Define interfaces for all data structures
+- Prefer `type` for object shapes, `interface` for extendable contracts
+- Use Zod for runtime validation
+
+### React/Next.js
+- Use Server Components by default
+- Add `'use client'` only when needed (interactivity)
+- Keep components small and focused
+- Use Next.js Image component for images
+
+### Styling
+- Use Tailwind CSS utility classes
+- Follow the design system colors (brand-red, brand-olive, brand-cream)
+- Mobile-first responsive design
+- Use `cn()` utility for conditional classes
+
+### State Management
+- Server state: fetch in Server Components
+- Client state: Zustand for cart
+- Form state: React Hook Form
+
+### Security
+- Validate all inputs with Zod (frontend + backend)
+- Use parameterized queries (Prisma handles this)
+- Implement rate limiting on API routes
+- Never expose sensitive data in responses
+- Use HTTPS and secure cookies
+
+## German Microcopy Reference
+
+### Buttons & CTAs
+- Order: "Jetzt bestellen"
+- Reserve: "Tisch reservieren"
+- Add to cart: "In den Warenkorb"
+- Checkout: "Zur Kasse"
+- Pay: "Jetzt bezahlen"
+- Submit: "Absenden"
+- Remove: "Entfernen"
+
+### Form Labels
+- First name: "Vorname"
+- Last name: "Nachname"
+- Email: "E-Mail"
+- Phone: "Telefon"
+- Address: "Adresse"
+- Street: "Straße & Hausnummer"
+- Postal code: "PLZ"
+- City: "Stadt"
+- Date: "Datum"
+- Time: "Uhrzeit"
+- Guests: "Anzahl Personen"
+- Notes: "Anmerkungen"
+
+### Order Status
+- Pending: "Ausstehend"
+- Confirmed: "Bestätigt"
+- Preparing: "Wird zubereitet"
+- In oven: "Im Ofen"
+- Ready: "Fertig"
+- Out for delivery: "Unterwegs"
+- Delivered: "Geliefert"
+
+## API Design Guidelines
+
+### Request Validation
+All API endpoints should validate inputs using Zod schemas from `src/lib/validations.ts`.
+
+### Response Format
+```typescript
+// Success
+{ data: T }
+
+// Error
+{ error: { message: string, code?: string } }
+```
+
+### Rate Limiting
+- Login: 5 attempts / 15 minutes
+- Order creation: 10 / hour / IP
+- Contact form: 3 / hour / IP
+- General API: 100 / minute / IP
+
+## Testing Strategy
+
+### Unit Tests
+- Utility functions
+- Validation schemas
+- Price calculations
+
+### Integration Tests
+- API endpoints
+- Database operations
+
+### E2E Tests (Phase 2)
+- Ordering flow
+- Checkout process
+- Admin workflows
+
+## Phase 2 Features (Planned)
+- Live driver tracking (GPS map)
+- Customer accounts & order history
+- Loyalty points program
+- Push notifications
+- Advanced analytics
+- Table management system
+- Printer integration
+
+## AI Assistant Guidelines
+
+### Before Making Changes
+1. Read existing code before proposing modifications
+2. Check the ARCHITECTURE.md for detailed design decisions
+3. Follow existing patterns in the codebase
+4. Validate against the Zod schemas
+
+### Code Quality
+- Write clean, typed TypeScript code
+- Keep functions focused (single responsibility)
+- Add JSDoc comments for exported functions
+- Avoid over-engineering
+
+### Security Checklist
+- [ ] Input validation with Zod
+- [ ] Parameterized database queries
+- [ ] Rate limiting on new endpoints
+- [ ] No hardcoded secrets
+- [ ] CSRF protection where needed
+- [ ] Audit logging for admin actions
+
+### Common Tasks
+
+**Adding a new page:**
+1. Create file in `src/app/[route]/page.tsx`
+2. Add to navigation in `header.tsx` if needed
+3. Update metadata in the page file
+
+**Adding a new API endpoint:**
+1. Create file in `src/app/api/[route]/route.ts`
+2. Add Zod validation schema
+3. Implement rate limiting
+4. Add to API documentation
+
+**Adding a new component:**
+1. Create in `src/components/ui/` for reusable components
+2. Follow shadcn/ui patterns
+3. Export from component file
 
 ---
 
-*This document should be updated as the project evolves and conventions are established.*
+*Last updated: February 2025*
