@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "menu": "Speisekarte",
+    "reservation": "Reservieren",
+    "about": "Über uns",
+    "contact": "Kontakt",
+    "orderNow": "Jetzt bestellen",
+    "cart": "Warenkorb"
+  },
+  "hero": {
+    "title": "Steinofenpizza in Haan",
+    "subtitle": "Frisch. Schnell. Ausgezeichnet.",
+    "orderCta": "Jetzt bestellen",
+    "reserveCta": "Tisch reservieren"
+  },
+  "common": {
+    "loading": "Laden...",
+    "error": "Ein Fehler ist aufgetreten",
+    "back": "Zurück",
+    "next": "Weiter",
+    "submit": "Absenden",
+    "cancel": "Abbrechen",
+    "close": "Schließen"
+  }
+}
