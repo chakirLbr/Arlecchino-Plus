@@ -80,5 +80,8 @@
   },
   "overrides": {
     "eslint": "^8.57.1"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   }
 }
