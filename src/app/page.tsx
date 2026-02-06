@@ -148,17 +148,21 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Hero Image */}
+            {/* Hero Video */}
             <div className="relative aspect-square lg:aspect-[4/5] max-w-lg mx-auto lg:max-w-none">
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-brand-red-100 to-brand-cream-200" />
-              {/* Placeholder for pizza image */}
-              <div className="absolute inset-4 rounded-2xl bg-gradient-to-br from-brand-cream-100 to-white flex items-center justify-center">
-                <div className="text-center p-8">
-                  <ChefHat className="h-24 w-24 mx-auto text-brand-red-200 mb-4" />
-                  <p className="text-muted-foreground text-sm">
-                    [Hero Pizza Bild]
-                  </p>
-                </div>
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-brand-red-100 to-brand-cream-200 overflow-hidden">
+                <video
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  className="absolute inset-0 w-full h-full object-cover rounded-3xl"
+                >
+                  <source src="/videos/hero-video.mp4" type="video/mp4" />
+                  {/* Fallback if video doesn't load */}
+                </video>
+                {/* Overlay gradient for better text readability if needed */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl" />
               </div>
             </div>
           </div>
