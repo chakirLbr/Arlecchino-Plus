@@ -234,6 +234,7 @@ export default function MenuManagementPage() {
         body: JSON.stringify({
           name: editingItem.name,
           description: editingItem.description,
+          basePrice: editingItem.basePrice,
           isVegetarian: editingItem.isVegetarian,
           isVegan: editingItem.isVegan,
         }),
@@ -601,15 +602,34 @@ export default function MenuManagementPage() {
               <CardTitle>Artikel bearbeiten</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="edit-name">Name</Label>
-                <Input
-                  id="edit-name"
-                  value={editingItem.name}
-                  onChange={(e) =>
-                    setEditingItem({ ...editingItem, name: e.target.value })
-                  }
-                />
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="edit-name">Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={editingItem.name}
+                    onChange={(e) =>
+                      setEditingItem({ ...editingItem, name: e.target.value })
+                    }
+                    disabled={isSaving}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-price">Preis (€)</Label>
+                  <Input
+                    id="edit-price"
+                    type="number"
+                    step="0.50"
+                    value={editingItem.basePrice ?? ''}
+                    onChange={(e) =>
+                      setEditingItem({
+                        ...editingItem,
+                        basePrice: e.target.value ? parseFloat(e.target.value) : null
+                      })
+                    }
+                    disabled={isSaving}
+                  />
+                </div>
               </div>
               <div>
                 <Label htmlFor="edit-description">Beschreibung</Label>
@@ -620,6 +640,7 @@ export default function MenuManagementPage() {
                     setEditingItem({ ...editingItem, description: e.target.value || null })
                   }
                   rows={3}
+                  disabled={isSaving}
                 />
               </div>
               <div className="flex gap-4">
@@ -631,6 +652,7 @@ export default function MenuManagementPage() {
                     onChange={(e) =>
                       setEditingItem({ ...editingItem, isVegetarian: e.target.checked })
                     }
+                    disabled={isSaving}
                   />
                   <Label htmlFor="edit-vegetarian">Vegetarisch</Label>
                 </div>
@@ -642,6 +664,7 @@ export default function MenuManagementPage() {
                     onChange={(e) =>
                       setEditingItem({ ...editingItem, isVegan: e.target.checked })
                     }
+                    disabled={isSaving}
                   />
                   <Label htmlFor="edit-vegan">Vegan</Label>
                 </div>
