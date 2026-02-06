@@ -388,8 +388,7 @@ export default function HomePage() {
             <a href="tel:021296663">
               <Button
                 size="xl"
-                variant="outline"
-                className="w-full sm:w-auto border-white text-white hover:bg-white/10"
+                className="w-full sm:w-auto bg-transparent border-2 border-white text-white hover:bg-white hover:text-brand-red-600"
               >
                 <Phone className="mr-2 h-5 w-5" />
                 02129 6663
