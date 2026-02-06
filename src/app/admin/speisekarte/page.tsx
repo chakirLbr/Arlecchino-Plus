@@ -11,6 +11,7 @@ import {
   Eye,
   EyeOff,
   Loader2,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -106,6 +107,20 @@ export default function MenuManagementPage() {
     return matchesSearch;
   });
 
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Refetch menu data
+  const refetchMenu = async () => {
+    try {
+      const response = await fetch('/api/menu');
+      if (!response.ok) throw new Error('Fehler beim Laden');
+      const data = await response.json();
+      setCategories(data.categories || []);
+    } catch (err) {
+      console.error('Error refetching menu:', err);
+    }
+  };
+
   const handleAddItem = () => {
     if (!newItem.name || !newItem.basePrice) return;
 
@@ -115,15 +130,99 @@ export default function MenuManagementPage() {
     setIsAddingItem(false);
   };
 
-  const handleToggleAvailability = async (id: string) => {
-    // TODO: Implement API call to toggle availability
-    alert('Diese Funktion wird bald verfügbar sein.');
+  const handleToggleAvailability = async (id: string, currentStatus: boolean) => {
+    try {
+      setIsSaving(true);
+      const response = await fetch(`/api/menu/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAvailable: !currentStatus }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Fehler beim Aktualisieren');
+      }
+
+      // Update local state
+      setCategories((prev) =>
+        prev.map((cat) => ({
+          ...cat,
+          items: cat.items.map((item) =>
+            item.id === id ? { ...item, isAvailable: !currentStatus } : item
+          ),
+        }))
+      );
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleDeleteItem = (id: string) => {
-    if (confirm('Möchten Sie diesen Artikel wirklich löschen?')) {
-      // TODO: Implement API call to delete item
-      alert('Diese Funktion wird bald verfügbar sein.');
+  const handleDeleteItem = async (id: string) => {
+    if (!confirm('Möchten Sie diesen Artikel wirklich löschen?')) return;
+
+    try {
+      setIsSaving(true);
+      const response = await fetch(`/api/menu/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Fehler beim Löschen');
+      }
+
+      // Update local state
+      setCategories((prev) =>
+        prev.map((cat) => ({
+          ...cat,
+          items: cat.items.filter((item) => item.id !== id),
+        }))
+      );
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingItem) return;
+
+    try {
+      setIsSaving(true);
+      const response = await fetch(`/api/menu/${editingItem.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: editingItem.name,
+          description: editingItem.description,
+          isVegetarian: editingItem.isVegetarian,
+          isVegan: editingItem.isVegan,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Fehler beim Speichern');
+      }
+
+      // Update local state
+      setCategories((prev) =>
+        prev.map((cat) => ({
+          ...cat,
+          items: cat.items.map((item) =>
+            item.id === editingItem.id ? editingItem : item
+          ),
+        }))
+      );
+      setEditingItem(null);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -388,7 +487,8 @@ export default function MenuManagementPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleToggleAvailability(item.id)}
+                          onClick={() => handleToggleAvailability(item.id, item.isAvailable)}
+                          disabled={isSaving}
                           title={
                             item.isAvailable
                               ? 'Als nicht verfügbar markieren'
@@ -404,7 +504,8 @@ export default function MenuManagementPage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => setEditingItem(item)}
+                          onClick={() => setEditingItem({ ...item })}
+                          disabled={isSaving}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -412,6 +513,7 @@ export default function MenuManagementPage() {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDeleteItem(item.id)}
+                          disabled={isSaving}
                           className="text-destructive hover:text-destructive"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -426,14 +528,105 @@ export default function MenuManagementPage() {
         </div>
       </div>
 
+      {/* Edit Modal */}
+      {editingItem && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-lg">
+            <CardHeader>
+              <CardTitle>Artikel bearbeiten</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="edit-name">Name</Label>
+                <Input
+                  id="edit-name"
+                  value={editingItem.name}
+                  onChange={(e) =>
+                    setEditingItem({ ...editingItem, name: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-description">Beschreibung</Label>
+                <Textarea
+                  id="edit-description"
+                  value={editingItem.description || ''}
+                  onChange={(e) =>
+                    setEditingItem({ ...editingItem, description: e.target.value || null })
+                  }
+                  rows={3}
+                />
+              </div>
+              <div className="flex gap-4">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="edit-vegetarian"
+                    checked={editingItem.isVegetarian}
+                    onChange={(e) =>
+                      setEditingItem({ ...editingItem, isVegetarian: e.target.checked })
+                    }
+                  />
+                  <Label htmlFor="edit-vegetarian">Vegetarisch</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="edit-vegan"
+                    checked={editingItem.isVegan}
+                    onChange={(e) =>
+                      setEditingItem({ ...editingItem, isVegan: e.target.checked })
+                    }
+                  />
+                  <Label htmlFor="edit-vegan">Vegan</Label>
+                </div>
+              </div>
+              {hasSizes(editingItem) && (
+                <div>
+                  <Label>Größen</Label>
+                  <div className="flex gap-2 mt-1 flex-wrap">
+                    {editingItem.sizes.map((size) => (
+                      <Badge key={size.id} variant="outline">
+                        {size.name}: {formatPrice(size.price)}
+                      </Badge>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Preise können über das Seed-Skript geändert werden.
+                  </p>
+                </div>
+              )}
+              <div className="flex gap-2 justify-end pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setEditingItem(null)}
+                  disabled={isSaving}
+                >
+                  Abbrechen
+                </Button>
+                <Button onClick={handleSaveEdit} disabled={isSaving}>
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Speichern...
+                    </>
+                  ) : (
+                    'Speichern'
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       {/* Instructions */}
       <Card className="bg-green-50 border-green-200">
         <CardContent className="p-4">
           <h3 className="font-semibold text-green-900 mb-2">✓ Datenbank verbunden</h3>
           <p className="text-sm text-green-800">
             Die Speisekarte wird aus der Datenbank geladen.
-            Bearbeiten und Löschen wird in einer zukünftigen Version verfügbar sein.
-            Neue Artikel können aktuell über das Datenbank-Seed-Skript hinzugefügt werden.
+            Sie können Artikel bearbeiten, löschen und die Verfügbarkeit ändern.
           </p>
         </CardContent>
       </Card>
