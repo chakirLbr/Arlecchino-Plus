@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ShoppingCart,
   Plus,
@@ -281,9 +282,19 @@ export default function MenuPage() {
                     <div className="flex">
                       {/* Image */}
                       <div className="relative w-32 h-32 bg-gradient-to-br from-brand-cream-100 to-brand-cream-50 shrink-0">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <ChefHat className="h-8 w-8 text-brand-red-200" />
-                        </div>
+                        {item.image ? (
+                          <Image
+                            src={item.image}
+                            alt={item.name}
+                            fill
+                            className="object-cover"
+                            sizes="128px"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <ChefHat className="h-8 w-8 text-brand-red-200" />
+                          </div>
+                        )}
                       </div>
 
                       {/* Content */}
@@ -520,9 +531,19 @@ export default function MenuPage() {
 
             {/* Image */}
             <div className="relative h-48 bg-gradient-to-br from-brand-cream-100 to-brand-cream-50">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <ChefHat className="h-16 w-16 text-brand-red-200" />
-              </div>
+              {selectedItem.item.image ? (
+                <Image
+                  src={selectedItem.item.image}
+                  alt={selectedItem.item.name}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 512px) 100vw, 512px"
+                />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <ChefHat className="h-16 w-16 text-brand-red-200" />
+                </div>
+              )}
             </div>
 
             {/* Content */}

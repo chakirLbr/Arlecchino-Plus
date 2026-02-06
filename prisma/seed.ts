@@ -13,6 +13,7 @@ async function main() {
   await prisma.menuItem.deleteMany();
   await prisma.category.deleteMany();
   await prisma.addOn.deleteMany();
+  await prisma.deliveryZone.deleteMany();
 
   console.log('🗑️  Cleared existing menu data');
 
