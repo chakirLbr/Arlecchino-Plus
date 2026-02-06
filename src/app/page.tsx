@@ -6,7 +6,6 @@ import {
   MapPin,
   Clock,
   Award,
-  ChefHat,
   Phone,
   ArrowRight,
   Star,
@@ -62,21 +61,21 @@ const signaturePizzas = [
     name: 'Margherita',
     description: 'Tomatensoße, Mozzarella, frisches Basilikum',
     price: '8,50',
-    image: '/images/pizza-margherita.jpg',
+    image: '/images/menu/pizza.jpg',
     tag: 'Klassiker',
   },
   {
     name: 'Diavola',
     description: 'Scharfe Salami, Peperoni, Tomatensoße, Mozzarella',
     price: '10,50',
-    image: '/images/pizza-diavola.jpg',
+    image: '/images/menu/pizza.jpg',
     tag: 'Beliebt',
   },
   {
     name: 'Quattro Formaggi',
     description: 'Mozzarella, Gorgonzola, Parmesan, Pecorino',
     price: '11,50',
-    image: '/images/pizza-quattro-formaggi.jpg',
+    image: '/images/menu/pizza.jpg',
     tag: 'Chef\'s Choice',
   },
 ];
@@ -222,15 +221,15 @@ export default function HomePage() {
             {signaturePizzas.map((pizza) => (
               <Card key={pizza.name} className="group overflow-hidden card-hover">
                 <div className="relative aspect-[4/3] bg-gradient-to-br from-brand-cream-100 to-brand-cream-50">
-                  {/* Placeholder for pizza image */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <ChefHat className="h-12 w-12 mx-auto text-brand-red-200" />
-                      <p className="text-xs text-muted-foreground mt-2">[Foto]</p>
-                    </div>
-                  </div>
+                  <Image
+                    src={pizza.image}
+                    alt={pizza.name}
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
                   {pizza.tag && (
-                    <Badge className="absolute top-3 right-3">
+                    <Badge className="absolute top-3 right-3 z-10">
                       {pizza.tag}
                     </Badge>
                   )}
