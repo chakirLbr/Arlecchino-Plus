@@ -9,6 +9,7 @@ const createMenuItemSchema = z.object({
   name: z.string().min(1, 'Name ist erforderlich'),
   description: z.string().nullable().optional(),
   basePrice: z.number().positive('Preis muss positiv sein'),
+  image: z.string().nullable().optional(),
   isVegetarian: z.boolean().optional().default(false),
   isVegan: z.boolean().optional().default(false),
   spiceLevel: z.number().min(0).max(3).optional().default(0),
@@ -27,6 +28,7 @@ interface ItemData {
   name: string;
   description: string | null;
   basePrice: Decimal;
+  image: string | null;
   spiceLevel: number;
   isVegetarian: boolean;
   isVegan: boolean;
@@ -51,13 +53,12 @@ interface AddOnData {
 
 export async function GET() {
   try {
-    // Fetch all active categories with their menu items
+    // Fetch all active categories with their menu items (including unavailable for admin)
     const categories = await prisma.category.findMany({
       where: { isActive: true },
       orderBy: { sortOrder: 'asc' },
       include: {
         items: {
-          where: { isAvailable: true },
           orderBy: { sortOrder: 'asc' },
           include: {
             sizes: {
@@ -148,6 +149,7 @@ export async function POST(request: NextRequest) {
         name: validatedData.name,
         description: validatedData.description || null,
         basePrice: validatedData.basePrice,
+        image: validatedData.image || null,
         isVegetarian: validatedData.isVegetarian,
         isVegan: validatedData.isVegan,
         spiceLevel: validatedData.spiceLevel,

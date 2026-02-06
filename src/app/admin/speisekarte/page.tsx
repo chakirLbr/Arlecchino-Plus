@@ -12,7 +12,10 @@ import {
   EyeOff,
   Loader2,
   X,
+  Upload,
+  Image as ImageIcon,
 } from 'lucide-react';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -66,9 +69,11 @@ export default function MenuManagementPage() {
     name: '',
     description: '',
     basePrice: '',
+    image: '',
     isVegetarian: false,
     isVegan: false,
   });
+  const [isUploading, setIsUploading] = useState(false);
 
   // Fetch menu data from database
   useEffect(() => {
@@ -123,6 +128,35 @@ export default function MenuManagementPage() {
     }
   };
 
+  // Handle file upload
+  const handleFileUpload = async (
+    file: File,
+    onSuccess: (path: string) => void
+  ) => {
+    try {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Fehler beim Hochladen');
+      }
+
+      const data = await response.json();
+      onSuccess(data.path);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Fehler beim Hochladen');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   const handleAddItem = async () => {
     if (!newItem.name || !newItem.basePrice || !selectedCategory) return;
 
@@ -136,6 +170,7 @@ export default function MenuManagementPage() {
           name: newItem.name,
           description: newItem.description || null,
           basePrice: parseFloat(newItem.basePrice),
+          image: newItem.image || null,
           isVegetarian: newItem.isVegetarian,
           isVegan: newItem.isVegan,
         }),
@@ -157,7 +192,7 @@ export default function MenuManagementPage() {
         )
       );
 
-      setNewItem({ name: '', description: '', basePrice: '', isVegetarian: false, isVegan: false });
+      setNewItem({ name: '', description: '', basePrice: '', image: '', isVegetarian: false, isVegan: false });
       setIsAddingItem(false);
     } catch (err) {
       alert(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
@@ -430,6 +465,66 @@ export default function MenuManagementPage() {
                       disabled={isSaving}
                     />
                   </div>
+                  <div className="sm:col-span-2">
+                    <Label>Bild</Label>
+                    <div className="flex items-center gap-4 mt-2">
+                      {newItem.image ? (
+                        <div className="relative w-20 h-20 rounded-lg overflow-hidden border">
+                          <Image
+                            src={newItem.image}
+                            alt="Vorschau"
+                            fill
+                            className="object-cover"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setNewItem({ ...newItem, image: '' })}
+                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="w-20 h-20 rounded-lg border-2 border-dashed flex items-center justify-center bg-gray-50">
+                          <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <label className="cursor-pointer">
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            className="hidden"
+                            disabled={isSaving || isUploading}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                handleFileUpload(file, (path) => {
+                                  setNewItem({ ...newItem, image: path });
+                                });
+                              }
+                            }}
+                          />
+                          <div className="inline-flex items-center px-4 py-2 border rounded-md hover:bg-gray-50 transition-colors">
+                            {isUploading ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Hochladen...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="h-4 w-4 mr-2" />
+                                Bild hochladen
+                              </>
+                            )}
+                          </div>
+                        </label>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          JPG, PNG oder WebP (max. 5MB)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <input
@@ -655,19 +750,64 @@ export default function MenuManagementPage() {
                 />
               </div>
               <div>
-                <Label htmlFor="edit-image">Bild-URL</Label>
-                <Input
-                  id="edit-image"
-                  value={editingItem.image || ''}
-                  onChange={(e) =>
-                    setEditingItem({ ...editingItem, image: e.target.value || null })
-                  }
-                  placeholder="/images/menu/pizza.jpg"
-                  disabled={isSaving}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Verfügbare Bilder: pizza.jpg, pasta.jpg, baguette.jpg, antipasti.jpg, auflaufe.jpg
-                </p>
+                <Label>Bild</Label>
+                <div className="flex items-center gap-4 mt-2">
+                  {editingItem.image ? (
+                    <div className="relative w-20 h-20 rounded-lg overflow-hidden border">
+                      <Image
+                        src={editingItem.image}
+                        alt="Vorschau"
+                        fill
+                        className="object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setEditingItem({ ...editingItem, image: null })}
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 rounded-lg border-2 border-dashed flex items-center justify-center bg-gray-50">
+                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="hidden"
+                        disabled={isSaving || isUploading}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            handleFileUpload(file, (path) => {
+                              setEditingItem({ ...editingItem, image: path });
+                            });
+                          }
+                        }}
+                      />
+                      <div className="inline-flex items-center px-4 py-2 border rounded-md hover:bg-gray-50 transition-colors">
+                        {isUploading ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Hochladen...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-2" />
+                            {editingItem.image ? 'Bild ändern' : 'Bild hochladen'}
+                          </>
+                        )}
+                      </div>
+                    </label>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      JPG, PNG oder WebP (max. 5MB)
+                    </p>
+                  </div>
+                </div>
               </div>
               <div className="flex gap-4">
                 <div className="flex items-center gap-2">
