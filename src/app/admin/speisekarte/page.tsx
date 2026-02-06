@@ -66,6 +66,7 @@ export default function MenuManagementPage() {
     description: '',
     basePrice: '',
     isVegetarian: false,
+    isVegan: false,
   });
 
   // Fetch menu data from database
@@ -121,13 +122,47 @@ export default function MenuManagementPage() {
     }
   };
 
-  const handleAddItem = () => {
-    if (!newItem.name || !newItem.basePrice) return;
+  const handleAddItem = async () => {
+    if (!newItem.name || !newItem.basePrice || !selectedCategory) return;
 
-    // TODO: Implement API call to add item to database
-    alert('Diese Funktion wird bald verfügbar sein. Die Artikel werden derzeit nur in der Datenbank über das Seed-Skript hinzugefügt.');
-    setNewItem({ name: '', description: '', basePrice: '', isVegetarian: false });
-    setIsAddingItem(false);
+    try {
+      setIsSaving(true);
+      const response = await fetch('/api/menu', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          categoryId: selectedCategory,
+          name: newItem.name,
+          description: newItem.description || null,
+          basePrice: parseFloat(newItem.basePrice),
+          isVegetarian: newItem.isVegetarian,
+          isVegan: newItem.isVegan,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Fehler beim Erstellen');
+      }
+
+      const createdItem = await response.json();
+
+      // Add to local state
+      setCategories((prev) =>
+        prev.map((cat) =>
+          cat.id === selectedCategory
+            ? { ...cat, items: [...cat.items, createdItem] }
+            : cat
+        )
+      );
+
+      setNewItem({ name: '', description: '', basePrice: '', isVegetarian: false, isVegan: false });
+      setIsAddingItem(false);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleToggleAvailability = async (id: string, currentStatus: boolean) => {
@@ -340,7 +375,9 @@ export default function MenuManagementPage() {
           {isAddingItem && (
             <Card className="border-brand-red-200 bg-brand-red-50">
               <CardContent className="p-4">
-                <h3 className="font-semibold mb-4">Neuen Artikel hinzufügen</h3>
+                <h3 className="font-semibold mb-4">
+                  Neuen Artikel hinzufügen zu: {selectedCategoryData?.name}
+                </h3>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="name">Name *</Label>
@@ -351,6 +388,7 @@ export default function MenuManagementPage() {
                         setNewItem({ ...newItem, name: e.target.value })
                       }
                       placeholder="z.B. Pizza Margherita"
+                      disabled={isSaving}
                     />
                   </div>
                   <div>
@@ -364,6 +402,7 @@ export default function MenuManagementPage() {
                         setNewItem({ ...newItem, basePrice: e.target.value })
                       }
                       placeholder="8.50"
+                      disabled={isSaving}
                     />
                   </div>
                   <div className="sm:col-span-2">
@@ -376,25 +415,51 @@ export default function MenuManagementPage() {
                       }
                       placeholder="Zutaten und Beschreibung..."
                       rows={2}
+                      disabled={isSaving}
                     />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="vegetarian"
-                      checked={newItem.isVegetarian}
-                      onChange={(e) =>
-                        setNewItem({ ...newItem, isVegetarian: e.target.checked })
-                      }
-                    />
-                    <Label htmlFor="vegetarian">Vegetarisch</Label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="vegetarian"
+                        checked={newItem.isVegetarian}
+                        onChange={(e) =>
+                          setNewItem({ ...newItem, isVegetarian: e.target.checked })
+                        }
+                        disabled={isSaving}
+                      />
+                      <Label htmlFor="vegetarian">Vegetarisch</Label>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="vegan"
+                        checked={newItem.isVegan}
+                        onChange={(e) =>
+                          setNewItem({ ...newItem, isVegan: e.target.checked })
+                        }
+                        disabled={isSaving}
+                      />
+                      <Label htmlFor="vegan">Vegan</Label>
+                    </div>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button onClick={handleAddItem}>Hinzufügen</Button>
+                  <Button onClick={handleAddItem} disabled={isSaving}>
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Speichern...
+                      </>
+                    ) : (
+                      'Hinzufügen'
+                    )}
+                  </Button>
                   <Button
                     variant="outline"
                     onClick={() => setIsAddingItem(false)}
+                    disabled={isSaving}
                   >
                     Abbrechen
                   </Button>
