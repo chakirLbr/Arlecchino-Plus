@@ -149,21 +149,18 @@ export default function HomePage() {
             </div>
 
             {/* Hero Video */}
-            <div className="relative aspect-square lg:aspect-[4/5] max-w-lg mx-auto lg:max-w-none">
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-brand-red-100 to-brand-cream-200 overflow-hidden">
-                <video
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  className="absolute inset-0 w-full h-full object-cover rounded-3xl"
-                >
-                  <source src="/videos/hero-video.mp4" type="video/mp4" />
-                  {/* Fallback if video doesn't load */}
-                </video>
-                {/* Overlay gradient for better text readability if needed */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-3xl" />
-              </div>
+            <div className="relative aspect-square lg:aspect-[4/5] max-w-lg mx-auto lg:max-w-none rounded-3xl overflow-hidden shadow-2xl">
+              <video
+                autoPlay
+                muted
+                loop
+                playsInline
+                className="w-full h-full object-cover"
+              >
+                <source src="/videos/hero-video.mp4" type="video/mp4" />
+              </video>
+              {/* Overlay gradient */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
             </div>
           </div>
         </div>
