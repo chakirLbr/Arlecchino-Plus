@@ -192,7 +192,7 @@ async function main() {
         spiceLevel: pizza.spiceLevel || 0,
         isVegetarian: pizza.isVegetarian || false,
         sortOrder: i + 1,
-        image: '/images/menu/pizza-placeholder.jpg',
+        image: '/images/menu/pizza.jpg',
         sizes: {
           create: [
             { name: 'Klein (26cm)', priceAdjustment: 0, sortOrder: 1, isDefault: false },
@@ -212,7 +212,7 @@ async function main() {
       basePrice: 17.00,
       isVegetarian: true,
       sortOrder: 100,
-      image: '/images/menu/pizza-placeholder.jpg',
+      image: '/images/menu/pizza.jpg',
     },
   });
 
@@ -323,7 +323,7 @@ async function main() {
         basePrice: pasta.price,
         isVegetarian: pasta.isVegetarian || false,
         sortOrder: i + 1,
-        image: '/images/menu/pasta-placeholder.jpg',
+        image: '/images/menu/pasta.jpg',
       },
     });
   }
@@ -339,6 +339,7 @@ async function main() {
       name: 'Antipasto Groß (ohne Fisch)',
       basePrice: 12.00,
       sortOrder: 1,
+      image: '/images/menu/antipasti.jpg',
     },
   });
 
@@ -348,6 +349,7 @@ async function main() {
       name: 'Antipasto Groß (mit Fisch)',
       basePrice: 13.00,
       sortOrder: 2,
+      image: '/images/menu/antipasti.jpg',
     },
   });
 
@@ -359,6 +361,7 @@ async function main() {
       basePrice: 8.00,
       isVegetarian: true,
       sortOrder: 3,
+      image: '/images/menu/antipasti.jpg',
     },
   });
 
@@ -370,6 +373,7 @@ async function main() {
       basePrice: 11.00,
       isVegetarian: true,
       sortOrder: 4,
+      image: '/images/menu/antipasti.jpg',
     },
   });
 
@@ -400,6 +404,7 @@ async function main() {
         basePrice: item.price,
         isVegetarian: item.isVegetarian || false,
         sortOrder: i + 1,
+        image: '/images/menu/baguette.jpg',
       },
     });
   }
@@ -424,6 +429,7 @@ async function main() {
         description: item.description,
         basePrice: item.price,
         sortOrder: i + 1,
+        image: '/images/menu/auflaufe.jpg',
       },
     });
   }
@@ -449,6 +455,7 @@ async function main() {
         basePrice: item.price,
         isVegetarian: true,
         sortOrder: i + 1,
+        image: '/images/menu/auflaufe.jpg',
       },
     });
   }
@@ -481,7 +488,7 @@ async function main() {
         basePrice: item.price,
         isVegetarian: item.isVegetarian || false,
         sortOrder: i + 1,
-        image: '/images/menu/salad-placeholder.jpg',
+        image: '/images/menu/salate.jpg',
       },
     });
   }
@@ -498,7 +505,7 @@ async function main() {
       basePrice: 4.00,
       isVegetarian: true,
       sortOrder: 1,
-      image: '/images/menu/tiramisu-placeholder.jpg',
+      image: null,
     },
   });
 
