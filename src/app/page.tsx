@@ -85,7 +85,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col">
       {/* Hero Section with Video Background */}
-      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[calc(100vh-80px)] mt-20 flex items-center justify-center overflow-hidden">
         {/* Video Background */}
         <div className="absolute inset-0 z-0">
           <video
