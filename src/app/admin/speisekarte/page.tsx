@@ -228,6 +228,14 @@ export default function MenuManagementPage() {
 
     try {
       setIsSaving(true);
+      // Prepare size updates if item has sizes
+      const sizeUpdates = editingItem.sizes?.length > 0
+        ? editingItem.sizes.map((size) => ({
+            id: size.id,
+            price: size.price,
+          }))
+        : undefined;
+
       const response = await fetch(`/api/menu/${editingItem.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
@@ -237,6 +245,7 @@ export default function MenuManagementPage() {
           basePrice: editingItem.basePrice,
           isVegetarian: editingItem.isVegetarian,
           isVegan: editingItem.isVegan,
+          sizes: sizeUpdates,
         }),
       });
 
@@ -671,17 +680,32 @@ export default function MenuManagementPage() {
               </div>
               {hasSizes(editingItem) && (
                 <div>
-                  <Label>Größen</Label>
-                  <div className="flex gap-2 mt-1 flex-wrap">
-                    {editingItem.sizes.map((size) => (
-                      <Badge key={size.id} variant="outline">
-                        {size.name}: {formatPrice(size.price)}
-                      </Badge>
+                  <Label>Größen-Preise (€)</Label>
+                  <div className="grid gap-3 mt-2">
+                    {editingItem.sizes.map((size, index) => (
+                      <div key={size.id} className="flex items-center gap-3">
+                        <span className="text-sm text-muted-foreground min-w-[120px]">
+                          {size.name}:
+                        </span>
+                        <Input
+                          type="number"
+                          step="0.50"
+                          value={size.price}
+                          onChange={(e) => {
+                            const newSizes = [...editingItem.sizes];
+                            newSizes[index] = {
+                              ...newSizes[index],
+                              price: parseFloat(e.target.value) || 0,
+                            };
+                            setEditingItem({ ...editingItem, sizes: newSizes });
+                          }}
+                          className="w-24"
+                          disabled={isSaving}
+                        />
+                        <span className="text-sm text-muted-foreground">€</span>
+                      </div>
                     ))}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Preise können über das Seed-Skript geändert werden.
-                  </p>
                 </div>
               )}
               <div className="flex gap-2 justify-end pt-4">
