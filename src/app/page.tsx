@@ -85,82 +85,93 @@ export default function HomePage() {
   return (
     <div className="flex flex-col">
       {/* Hero Section */}
-      <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+      <section className="relative overflow-hidden">
         {/* Background */}
         <div className="absolute inset-0 bg-gradient-to-br from-brand-cream-100 via-white to-brand-cream-50" />
-        <div className="absolute inset-0 bg-[url('/images/pattern.svg')] opacity-5" />
 
-        {/* Hero Content */}
-        <div className="container-wide relative z-10 pt-20 pb-12 lg:pt-24">
-          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
-            {/* Text Content */}
-            <div className="space-y-8 text-center lg:text-left">
-              {/* Award Badge */}
-              <div className="inline-flex items-center gap-2 rounded-full bg-brand-red-50 px-4 py-2 text-sm font-medium text-brand-red-700">
-                <Award className="h-4 w-4" />
-                <span>Mehrfach ausgezeichnete Pizzeria</span>
-              </div>
-
-              {/* Headline */}
-              <div className="space-y-4">
-                <h1 className="font-heading text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-                  Steinofenpizza
-                  <br />
-                  <span className="text-brand-red-600">in Haan</span>
-                </h1>
-                <p className="text-xl text-muted-foreground lg:text-2xl">
-                  Frisch. Schnell. Ausgezeichnet.
-                </p>
-              </div>
-
-              {/* Description */}
-              <p className="max-w-lg mx-auto lg:mx-0 text-muted-foreground">
-                Erleben Sie authentische italienische Pizza, zubereitet von unserem
-                preisgekrönten Pizzaiolo Tonino Pisano. Aus dem Steinofen direkt zu Ihnen.
-              </p>
-
-              {/* CTAs */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link href="/speisekarte">
-                  <Button size="xl" className="w-full sm:w-auto">
-                    <span>Jetzt bestellen</span>
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link href="/reservierung">
-                  <Button size="xl" variant="outline" className="w-full sm:w-auto">
-                    Tisch reservieren
-                  </Button>
-                </Link>
-              </div>
-
-              {/* Feature Pills */}
-              <div className="flex flex-wrap gap-3 justify-center lg:justify-start pt-4">
-                {features.map((feature) => (
-                  <div
-                    key={feature.title}
-                    className="flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm"
-                  >
-                    <feature.icon className="h-4 w-4 text-brand-red-600" />
-                    <span className="text-sm font-medium">{feature.title}</span>
-                  </div>
-                ))}
-              </div>
+        {/* Hero Text Content */}
+        <div className="container-wide relative z-10 pt-28 pb-12 lg:pt-32">
+          <div className="max-w-3xl mx-auto text-center space-y-8">
+            {/* Award Badge */}
+            <div className="inline-flex items-center gap-2 rounded-full bg-brand-red-50 px-4 py-2 text-sm font-medium text-brand-red-700">
+              <Award className="h-4 w-4" />
+              <span>Mehrfach ausgezeichnete Pizzeria</span>
             </div>
 
-            {/* Hero Video */}
-            <div className="relative aspect-square lg:aspect-[4/5] max-w-lg mx-auto lg:max-w-none rounded-3xl overflow-hidden shadow-2xl">
+            {/* Headline */}
+            <div className="space-y-4">
+              <h1 className="font-heading text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-7xl">
+                Steinofenpizza
+                <br />
+                <span className="text-brand-red-600">in Haan</span>
+              </h1>
+              <p className="text-xl text-muted-foreground lg:text-2xl">
+                Frisch. Schnell. Ausgezeichnet.
+              </p>
+            </div>
+
+            {/* Description */}
+            <p className="max-w-2xl mx-auto text-muted-foreground text-lg">
+              Erleben Sie authentische italienische Pizza, zubereitet von unserem
+              preisgekrönten Pizzaiolo Tonino Pisano. Aus dem Steinofen direkt zu Ihnen.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/speisekarte">
+                <Button size="xl" className="w-full sm:w-auto">
+                  <span>Jetzt bestellen</span>
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/reservierung">
+                <Button size="xl" variant="outline" className="w-full sm:w-auto">
+                  Tisch reservieren
+                </Button>
+              </Link>
+            </div>
+
+            {/* Feature Pills */}
+            <div className="flex flex-wrap gap-3 justify-center pt-2">
+              {features.map((feature) => (
+                <div
+                  key={feature.title}
+                  className="flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm border"
+                >
+                  <feature.icon className="h-4 w-4 text-brand-red-600" />
+                  <span className="text-sm font-medium">{feature.title}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Hero Video Banner */}
+        <div className="relative mt-8 mb-0">
+          <div className="container-wide">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
               <video
                 autoPlay
                 muted
                 loop
                 playsInline
-                className="w-full h-full object-cover"
+                className="w-full aspect-video object-cover"
               >
                 <source src="/videos/hero-video.mp4" type="video/mp4" />
               </video>
-              {/* Overlay gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+              {/* Subtle overlay */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10" />
+              {/* Optional text overlay on video */}
+              <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
+                <div className="text-white">
+                  <p className="text-sm font-medium opacity-90">Tonino Pisano</p>
+                  <p className="text-xs opacity-70">Preisgekrönter Pizzaiolo</p>
+                </div>
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5">
+                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  <span className="text-white text-xs font-medium">Live aus der Küche</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
