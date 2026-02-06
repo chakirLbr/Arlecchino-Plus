@@ -26,6 +26,7 @@ interface MenuItemSize {
   name: string;
   price: number;
   sortOrder: number;
+  isDefault: boolean;
 }
 
 interface MenuItem {
