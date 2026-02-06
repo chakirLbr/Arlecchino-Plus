@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import Image from 'next/image';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import {
   ShoppingCart,
@@ -14,6 +13,7 @@ import {
   ChefHat,
   Flame,
   Leaf,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,139 +30,42 @@ import {
 import { useCartStore, CartItem } from '@/store/cart';
 import { formatPrice } from '@/lib/utils';
 
-// Sample menu data - this would come from the database in production
-const categories = [
-  { id: 'pizza', name: 'Pizza', slug: 'pizza' },
-  { id: 'pasta', name: 'Pasta', slug: 'pasta' },
-  { id: 'salate', name: 'Salate', slug: 'salate' },
-  { id: 'vorspeisen', name: 'Vorspeisen', slug: 'vorspeisen' },
-  { id: 'auflaeufe', name: 'Aufläufe', slug: 'auflaeufe' },
-  { id: 'getraenke', name: 'Getränke', slug: 'getraenke' },
-];
+interface MenuItemSize {
+  id: string;
+  name: string;
+  priceAdjustment: number;
+  isDefault: boolean;
+}
 
-const menuItems = [
-  // Pizza
-  {
-    id: '1',
-    categoryId: 'pizza',
-    name: 'Margherita',
-    description: 'Tomatensoße, Mozzarella, frisches Basilikum',
-    basePrice: 8.5,
-    image: '/images/pizza-margherita.jpg',
-    spiceLevel: 0,
-    isVegetarian: true,
-    isVegan: false,
-    allergens: ['GLUTEN', 'DAIRY'],
-    sizes: [
-      { name: 'Klein (26cm)', priceAdjustment: -1.5 },
-      { name: 'Normal (32cm)', priceAdjustment: 0 },
-      { name: 'Groß (40cm)', priceAdjustment: 4 },
-    ],
-  },
-  {
-    id: '2',
-    categoryId: 'pizza',
-    name: 'Diavola',
-    description: 'Tomatensoße, Mozzarella, scharfe Salami, Peperoni',
-    basePrice: 10.5,
-    image: '/images/pizza-diavola.jpg',
-    spiceLevel: 2,
-    isVegetarian: false,
-    isVegan: false,
-    allergens: ['GLUTEN', 'DAIRY'],
-    sizes: [
-      { name: 'Klein (26cm)', priceAdjustment: -1.5 },
-      { name: 'Normal (32cm)', priceAdjustment: 0 },
-      { name: 'Groß (40cm)', priceAdjustment: 4 },
-    ],
-  },
-  {
-    id: '3',
-    categoryId: 'pizza',
-    name: 'Quattro Formaggi',
-    description: 'Mozzarella, Gorgonzola, Parmesan, Pecorino',
-    basePrice: 11.5,
-    image: '/images/pizza-quattro-formaggi.jpg',
-    spiceLevel: 0,
-    isVegetarian: true,
-    isVegan: false,
-    allergens: ['GLUTEN', 'DAIRY'],
-    sizes: [
-      { name: 'Klein (26cm)', priceAdjustment: -1.5 },
-      { name: 'Normal (32cm)', priceAdjustment: 0 },
-      { name: 'Groß (40cm)', priceAdjustment: 4 },
-    ],
-  },
-  {
-    id: '4',
-    categoryId: 'pizza',
-    name: 'Prosciutto e Funghi',
-    description: 'Tomatensoße, Mozzarella, Schinken, Champignons',
-    basePrice: 10.0,
-    image: '/images/pizza-prosciutto-funghi.jpg',
-    spiceLevel: 0,
-    isVegetarian: false,
-    isVegan: false,
-    allergens: ['GLUTEN', 'DAIRY'],
-    sizes: [
-      { name: 'Klein (26cm)', priceAdjustment: -1.5 },
-      { name: 'Normal (32cm)', priceAdjustment: 0 },
-      { name: 'Groß (40cm)', priceAdjustment: 4 },
-    ],
-  },
-  // Pasta
-  {
-    id: '5',
-    categoryId: 'pasta',
-    name: 'Spaghetti Bolognese',
-    description: 'Klassische Fleischsoße nach Hausrezept',
-    basePrice: 9.5,
-    image: '/images/pasta-bolognese.jpg',
-    spiceLevel: 0,
-    isVegetarian: false,
-    isVegan: false,
-    allergens: ['GLUTEN', 'DAIRY'],
-    sizes: [],
-  },
-  {
-    id: '6',
-    categoryId: 'pasta',
-    name: 'Penne Arrabiata',
-    description: 'Scharfe Tomatensoße mit Knoblauch und Peperoncino',
-    basePrice: 8.5,
-    image: '/images/pasta-arrabiata.jpg',
-    spiceLevel: 2,
-    isVegetarian: true,
-    isVegan: true,
-    allergens: ['GLUTEN'],
-    sizes: [],
-  },
-  // Salate
-  {
-    id: '7',
-    categoryId: 'salate',
-    name: 'Insalata Mista',
-    description: 'Gemischter Salat mit Tomaten, Gurken, Mais',
-    basePrice: 6.5,
-    image: '/images/salad-mista.jpg',
-    spiceLevel: 0,
-    isVegetarian: true,
-    isVegan: true,
-    allergens: [],
-    sizes: [],
-  },
-];
+interface MenuItem {
+  id: string;
+  categoryId: string;
+  name: string;
+  description: string | null;
+  basePrice: number;
+  image: string | null;
+  spiceLevel: number;
+  isVegetarian: boolean;
+  isVegan: boolean;
+  allergens: string[];
+  sizes: MenuItemSize[];
+}
 
-const addOns = [
-  { id: 'extra-cheese', name: 'Extra Käse', price: 1.5 },
-  { id: 'ham', name: 'Schinken', price: 2.0 },
-  { id: 'mushrooms', name: 'Pilze', price: 1.5 },
-  { id: 'olives', name: 'Oliven', price: 1.0 },
-  { id: 'pepperoni', name: 'Peperoni', price: 1.5 },
-];
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  items: MenuItem[];
+}
+
+interface AddOn {
+  id: string;
+  name: string;
+  price: number;
+}
 
 interface SelectedItem {
-  item: (typeof menuItems)[0];
+  item: MenuItem;
   size: string;
   sizePrice: number;
   addOns: Array<{ name: string; price: number }>;
@@ -171,7 +74,10 @@ interface SelectedItem {
 }
 
 export default function MenuPage() {
-  const [activeCategory, setActiveCategory] = useState('pizza');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [addOns, setAddOns] = useState<AddOn[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<string>('');
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
 
@@ -182,18 +88,59 @@ export default function MenuPage() {
     deliveryFee,
     addItem,
     removeItem,
-    updateQuantity,
     getSubtotal,
     getTotal,
     getItemTotal,
   } = useCartStore();
 
+  // Fetch menu data
+  useEffect(() => {
+    async function fetchMenu() {
+      try {
+        const response = await fetch('/api/menu');
+        const data = await response.json();
+
+        if (data.categories && data.categories.length > 0) {
+          // Convert Decimal to number for basePrice and priceAdjustment
+          const processedCategories = data.categories.map((cat: Category & { items: (MenuItem & { basePrice: string | number, sizes: (MenuItemSize & { priceAdjustment: string | number })[] })[] }) => ({
+            ...cat,
+            items: cat.items.map((item) => ({
+              ...item,
+              basePrice: typeof item.basePrice === 'string' ? parseFloat(item.basePrice) : item.basePrice,
+              sizes: item.sizes.map((size) => ({
+                ...size,
+                priceAdjustment: typeof size.priceAdjustment === 'string' ? parseFloat(size.priceAdjustment) : size.priceAdjustment,
+              })),
+            })),
+          }));
+
+          setCategories(processedCategories);
+          setActiveCategory(processedCategories[0].id);
+        }
+
+        if (data.addOns) {
+          const processedAddOns = data.addOns.map((addon: AddOn & { price: string | number }) => ({
+            ...addon,
+            price: typeof addon.price === 'string' ? parseFloat(addon.price) : addon.price,
+          }));
+          setAddOns(processedAddOns);
+        }
+      } catch (error) {
+        console.error('Failed to fetch menu:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchMenu();
+  }, []);
+
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  const filteredItems = useMemo(
-    () => menuItems.filter((item) => item.categoryId === activeCategory),
-    [activeCategory]
-  );
+  const filteredItems = useMemo(() => {
+    const category = categories.find((c) => c.id === activeCategory);
+    return category?.items || [];
+  }, [categories, activeCategory]);
 
   const handleAddToCart = () => {
     if (!selectedItem) return;
@@ -207,7 +154,7 @@ export default function MenuPage() {
       quantity: selectedItem.quantity,
       addOns: selectedItem.addOns,
       notes: selectedItem.notes,
-      image: selectedItem.item.image,
+      image: selectedItem.item.image || undefined,
     };
 
     addItem(cartItem);
@@ -215,8 +162,8 @@ export default function MenuPage() {
     setCartOpen(true);
   };
 
-  const openItemModal = (item: (typeof menuItems)[0]) => {
-    const defaultSize = item.sizes.find((s) => s.priceAdjustment === 0) || item.sizes[0];
+  const openItemModal = (item: MenuItem) => {
+    const defaultSize = item.sizes.find((s) => s.isDefault) || item.sizes[0];
     setSelectedItem({
       item,
       size: defaultSize?.name || '',
@@ -226,6 +173,17 @@ export default function MenuPage() {
       notes: '',
     });
   };
+
+  if (loading) {
+    return (
+      <div className="pt-20 min-h-screen bg-brand-cream-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-brand-red-600" />
+          <p className="mt-4 text-muted-foreground">Speisekarte wird geladen...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pt-20 min-h-screen bg-brand-cream-50">
@@ -308,60 +266,71 @@ export default function MenuPage() {
               {categories.find((c) => c.id === activeCategory)?.name}
             </h2>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              {filteredItems.map((item) => (
-                <Card
-                  key={item.id}
-                  className="overflow-hidden cursor-pointer card-hover"
-                  onClick={() => openItemModal(item)}
-                >
-                  <div className="flex">
-                    {/* Image */}
-                    <div className="relative w-32 h-32 bg-gradient-to-br from-brand-cream-100 to-brand-cream-50 shrink-0">
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <ChefHat className="h-8 w-8 text-brand-red-200" />
+            {filteredItems.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">
+                Keine Artikel in dieser Kategorie verfügbar.
+              </p>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2">
+                {filteredItems.map((item) => (
+                  <Card
+                    key={item.id}
+                    className="overflow-hidden cursor-pointer card-hover"
+                    onClick={() => openItemModal(item)}
+                  >
+                    <div className="flex">
+                      {/* Image */}
+                      <div className="relative w-32 h-32 bg-gradient-to-br from-brand-cream-100 to-brand-cream-50 shrink-0">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <ChefHat className="h-8 w-8 text-brand-red-200" />
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Content */}
-                    <CardContent className="flex-1 p-4">
-                      <div className="flex items-start justify-between gap-2">
-                        <div>
-                          <h3 className="font-semibold">{item.name}</h3>
-                          <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                            {item.description}
+                      {/* Content */}
+                      <CardContent className="flex-1 p-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h3 className="font-semibold">{item.name}</h3>
+                            {item.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                                {item.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="flex items-center gap-2">
+                            {item.isVegetarian && (
+                              <Badge variant="outline" className="text-xs">
+                                <Leaf className="h-3 w-3 mr-1 text-green-600" />
+                                Vegetarisch
+                              </Badge>
+                            )}
+                            {item.spiceLevel > 0 && (
+                              <span className="flex">
+                                {[...Array(item.spiceLevel)].map((_, i) => (
+                                  <Flame
+                                    key={i}
+                                    className="h-4 w-4 text-red-500"
+                                  />
+                                ))}
+                              </span>
+                            )}
+                          </div>
+                          <p className="font-bold text-brand-red-600">
+                            {item.sizes.length > 0
+                              ? `ab ${formatPrice(item.basePrice)}`
+                              : formatPrice(item.basePrice)
+                            }
                           </p>
                         </div>
-                      </div>
-
-                      <div className="flex items-center justify-between mt-3">
-                        <div className="flex items-center gap-2">
-                          {item.isVegetarian && (
-                            <Badge variant="outline\" className="text-xs">
-                              <Leaf className="h-3 w-3 mr-1 text-green-600" />
-                              Vegetarisch
-                            </Badge>
-                          )}
-                          {item.spiceLevel > 0 && (
-                            <span className="flex">
-                              {[...Array(item.spiceLevel)].map((_, i) => (
-                                <Flame
-                                  key={i}
-                                  className="h-4 w-4 text-red-500"
-                                />
-                              ))}
-                            </span>
-                          )}
-                        </div>
-                        <p className="font-bold text-brand-red-600">
-                          {formatPrice(item.basePrice)}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </div>
-                </Card>
-              ))}
-            </div>
+                      </CardContent>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Desktop Cart */}
@@ -569,15 +538,24 @@ export default function MenuPage() {
                     )}
                   </p>
                 </div>
-                <p className="text-muted-foreground mt-2">
-                  {selectedItem.item.description}
-                </p>
+                {selectedItem.item.description && (
+                  <p className="text-muted-foreground mt-2">
+                    {selectedItem.item.description}
+                  </p>
+                )}
                 <div className="flex gap-2 mt-3">
-                  {selectedItem.item.allergens.map((allergen) => (
-                    <Badge key={allergen} variant="outline" className="text-xs">
-                      {allergen}
+                  {selectedItem.item.isVegetarian && (
+                    <Badge variant="outline" className="text-xs">
+                      <Leaf className="h-3 w-3 mr-1 text-green-600" />
+                      Vegetarisch
                     </Badge>
-                  ))}
+                  )}
+                  {selectedItem.item.spiceLevel > 0 && (
+                    <Badge variant="outline" className="text-xs">
+                      <Flame className="h-3 w-3 mr-1 text-red-500" />
+                      Scharf
+                    </Badge>
+                  )}
                 </div>
               </div>
 
@@ -588,7 +566,7 @@ export default function MenuPage() {
                   <div className="space-y-2">
                     {selectedItem.item.sizes.map((size) => (
                       <label
-                        key={size.name}
+                        key={size.id}
                         className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
                           selectedItem.size === size.name
                             ? 'border-brand-red-600 bg-brand-red-50'
@@ -629,7 +607,7 @@ export default function MenuPage() {
               )}
 
               {/* Add-ons */}
-              {selectedItem.item.categoryId === 'pizza' && (
+              {addOns.length > 0 && categories.find(c => c.id === activeCategory)?.slug === 'pizza' && (
                 <div>
                   <h3 className="font-semibold mb-3">Extras (optional)</h3>
                   <div className="space-y-2">
