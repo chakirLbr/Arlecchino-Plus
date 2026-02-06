@@ -64,7 +64,7 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 lg:flex">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -144,7 +144,7 @@ export default function AdminLayout({
       </aside>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="flex-1">
         {/* Top bar */}
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-white px-4 lg:px-6">
           {/* Mobile menu button */}
