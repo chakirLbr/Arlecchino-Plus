@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
-import { Header } from '@/components/layout/header';
-import { Footer } from '@/components/layout/footer';
+import { LayoutWrapper } from '@/components/layout/layout-wrapper';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -145,9 +144,7 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body min-h-screen antialiased">
-        <Header />
-        <main className="min-h-screen">{children}</main>
-        <Footer />
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );
