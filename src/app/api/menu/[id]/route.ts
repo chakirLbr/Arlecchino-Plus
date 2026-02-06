@@ -24,6 +24,7 @@ const updateMenuItemSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().nullable().optional(),
   basePrice: z.number().positive().nullable().optional(),
+  image: z.string().nullable().optional(),
   isAvailable: z.boolean().optional(),
   isVegetarian: z.boolean().optional(),
   isVegan: z.boolean().optional(),

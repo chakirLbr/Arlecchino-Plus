@@ -36,6 +36,7 @@ interface MenuItem {
   name: string;
   description: string | null;
   basePrice: number | null;
+  image: string | null;
   isAvailable: boolean;
   isVegetarian: boolean;
   isVegan: boolean;
@@ -243,6 +244,7 @@ export default function MenuManagementPage() {
           name: editingItem.name,
           description: editingItem.description,
           basePrice: editingItem.basePrice,
+          image: editingItem.image,
           isVegetarian: editingItem.isVegetarian,
           isVegan: editingItem.isVegan,
           sizes: sizeUpdates,
@@ -651,6 +653,21 @@ export default function MenuManagementPage() {
                   rows={3}
                   disabled={isSaving}
                 />
+              </div>
+              <div>
+                <Label htmlFor="edit-image">Bild-URL</Label>
+                <Input
+                  id="edit-image"
+                  value={editingItem.image || ''}
+                  onChange={(e) =>
+                    setEditingItem({ ...editingItem, image: e.target.value || null })
+                  }
+                  placeholder="/images/menu/pizza.jpg"
+                  disabled={isSaving}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Verfügbare Bilder: pizza.jpg, pasta.jpg, baguette.jpg, antipasti.jpg, auflaufe.jpg
+                </p>
               </div>
               <div className="flex gap-4">
                 <div className="flex items-center gap-2">
