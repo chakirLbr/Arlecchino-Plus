@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Plus,
   Pencil,
@@ -10,6 +10,7 @@ import {
   GripVertical,
   Eye,
   EyeOff,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,72 +21,24 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice } from '@/lib/utils';
 
-// Sample data - this would come from database
-const initialCategories = [
-  { id: '1', name: 'Pizza', slug: 'pizza', sortOrder: 1 },
-  { id: '2', name: 'Pasta', slug: 'pasta', sortOrder: 2 },
-  { id: '3', name: 'Salate', slug: 'salate', sortOrder: 3 },
-  { id: '4', name: 'Vorspeisen', slug: 'vorspeisen', sortOrder: 4 },
-  { id: '5', name: 'Aufläufe', slug: 'auflaeufe', sortOrder: 5 },
-  { id: '6', name: 'Getränke', slug: 'getraenke', sortOrder: 6 },
-];
-
-const initialMenuItems = [
-  {
-    id: '1',
-    categoryId: '1',
-    name: 'Margherita',
-    description: 'Tomatensoße, Mozzarella, frisches Basilikum',
-    basePrice: 8.5,
-    isAvailable: true,
-    isVegetarian: true,
-  },
-  {
-    id: '2',
-    categoryId: '1',
-    name: 'Diavola',
-    description: 'Tomatensoße, Mozzarella, scharfe Salami, Peperoni',
-    basePrice: 10.5,
-    isAvailable: true,
-    isVegetarian: false,
-  },
-  {
-    id: '3',
-    categoryId: '1',
-    name: 'Quattro Formaggi',
-    description: 'Mozzarella, Gorgonzola, Parmesan, Pecorino',
-    basePrice: 11.5,
-    isAvailable: true,
-    isVegetarian: true,
-  },
-  {
-    id: '4',
-    categoryId: '2',
-    name: 'Spaghetti Bolognese',
-    description: 'Klassische Fleischsoße nach Hausrezept',
-    basePrice: 9.5,
-    isAvailable: true,
-    isVegetarian: false,
-  },
-  {
-    id: '5',
-    categoryId: '2',
-    name: 'Penne Arrabiata',
-    description: 'Scharfe Tomatensoße mit Knoblauch und Peperoncino',
-    basePrice: 8.5,
-    isAvailable: true,
-    isVegetarian: true,
-  },
-];
+interface MenuItemSize {
+  id: string;
+  name: string;
+  price: number;
+  sortOrder: number;
+}
 
 interface MenuItem {
   id: string;
   categoryId: string;
   name: string;
-  description: string;
-  basePrice: number;
+  description: string | null;
+  basePrice: number | null;
   isAvailable: boolean;
   isVegetarian: boolean;
+  isVegan: boolean;
+  isSpicy: boolean;
+  sizes: MenuItemSize[];
 }
 
 interface Category {
@@ -93,15 +46,18 @@ interface Category {
   name: string;
   slug: string;
   sortOrder: number;
+  isActive: boolean;
+  items: MenuItem[];
 }
 
 export default function MenuManagementPage() {
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
-  const [selectedCategory, setSelectedCategory] = useState<string>('1');
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddingItem, setIsAddingItem] = useState(false);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [newItem, setNewItem] = useState({
     name: '',
@@ -110,51 +66,103 @@ export default function MenuManagementPage() {
     isVegetarian: false,
   });
 
-  const filteredItems = menuItems.filter((item) => {
-    const matchesCategory = item.categoryId === selectedCategory;
+  // Fetch menu data from database
+  useEffect(() => {
+    async function fetchMenu() {
+      try {
+        setIsLoading(true);
+        const response = await fetch('/api/menu');
+        if (!response.ok) {
+          throw new Error('Fehler beim Laden der Speisekarte');
+        }
+        const data = await response.json();
+        setCategories(data.categories || []);
+        // Select first category by default
+        if (data.categories && data.categories.length > 0) {
+          setSelectedCategory(data.categories[0].id);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchMenu();
+  }, []);
+
+  // Get all menu items from all categories
+  const allMenuItems = categories.flatMap((cat) => cat.items || []);
+
+  // Get items for the selected category
+  const selectedCategoryData = categories.find((cat) => cat.id === selectedCategory);
+  const categoryItems = selectedCategoryData?.items || [];
+
+  const filteredItems = categoryItems.filter((item) => {
     const matchesSearch =
       searchQuery === '' ||
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+      (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesSearch;
   });
 
   const handleAddItem = () => {
     if (!newItem.name || !newItem.basePrice) return;
 
-    const item: MenuItem = {
-      id: Date.now().toString(),
-      categoryId: selectedCategory,
-      name: newItem.name,
-      description: newItem.description,
-      basePrice: parseFloat(newItem.basePrice),
-      isAvailable: true,
-      isVegetarian: newItem.isVegetarian,
-    };
-
-    setMenuItems([...menuItems, item]);
+    // TODO: Implement API call to add item to database
+    alert('Diese Funktion wird bald verfügbar sein. Die Artikel werden derzeit nur in der Datenbank über das Seed-Skript hinzugefügt.');
     setNewItem({ name: '', description: '', basePrice: '', isVegetarian: false });
     setIsAddingItem(false);
-
-    // TODO: Save to database
-    alert('Artikel hinzugefügt! (In Produktion wird dies in der Datenbank gespeichert)');
   };
 
-  const handleToggleAvailability = (id: string) => {
-    setMenuItems(
-      menuItems.map((item) =>
-        item.id === id ? { ...item, isAvailable: !item.isAvailable } : item
-      )
-    );
-    // TODO: Save to database
+  const handleToggleAvailability = async (id: string) => {
+    // TODO: Implement API call to toggle availability
+    alert('Diese Funktion wird bald verfügbar sein.');
   };
 
   const handleDeleteItem = (id: string) => {
     if (confirm('Möchten Sie diesen Artikel wirklich löschen?')) {
-      setMenuItems(menuItems.filter((item) => item.id !== id));
-      // TODO: Delete from database
+      // TODO: Implement API call to delete item
+      alert('Diese Funktion wird bald verfügbar sein.');
     }
   };
+
+  // Get the price to display (either basePrice or first size price)
+  const getItemPrice = (item: MenuItem): number => {
+    if (item.basePrice !== null) {
+      return item.basePrice;
+    }
+    if (item.sizes && item.sizes.length > 0) {
+      return item.sizes[0].price;
+    }
+    return 0;
+  };
+
+  // Check if item has multiple sizes
+  const hasSizes = (item: MenuItem): boolean => {
+    return item.sizes && item.sizes.length > 0;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-brand-red-600" />
+          <p className="text-muted-foreground">Speisekarte wird geladen...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="p-6 text-center">
+          <p className="text-destructive mb-4">{error}</p>
+          <Button onClick={() => window.location.reload()}>Erneut versuchen</Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -163,7 +171,7 @@ export default function MenuManagementPage() {
         <div>
           <h1 className="text-2xl font-bold">Speisekarte verwalten</h1>
           <p className="text-muted-foreground">
-            {menuItems.length} Artikel in {categories.length} Kategorien
+            {allMenuItems.length} Artikel in {categories.length} Kategorien
           </p>
         </div>
         <Button onClick={() => setIsAddingItem(true)}>
@@ -192,9 +200,7 @@ export default function MenuManagementPage() {
           <CardContent className="p-0">
             <div className="space-y-1 p-2">
               {categories.map((category) => {
-                const itemCount = menuItems.filter(
-                  (i) => i.categoryId === category.id
-                ).length;
+                const itemCount = category.items?.length || 0;
                 return (
                   <button
                     key={category.id}
@@ -331,11 +337,21 @@ export default function MenuManagementPage() {
 
                       {/* Item Info */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <h3 className="font-semibold">{item.name}</h3>
                           {item.isVegetarian && (
                             <Badge variant="outline" className="text-green-600">
                               Vegetarisch
+                            </Badge>
+                          )}
+                          {item.isVegan && (
+                            <Badge variant="outline" className="text-green-700">
+                              Vegan
+                            </Badge>
+                          )}
+                          {item.isSpicy && (
+                            <Badge variant="outline" className="text-red-600">
+                              Scharf
                             </Badge>
                           )}
                           {!item.isAvailable && (
@@ -343,14 +359,26 @@ export default function MenuManagementPage() {
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {item.description}
+                          {item.description || 'Keine Beschreibung'}
                         </p>
+                        {hasSizes(item) && (
+                          <div className="flex gap-2 mt-2 flex-wrap">
+                            {item.sizes.map((size) => (
+                              <Badge key={size.id} variant="outline" className="text-xs">
+                                {size.name}: {formatPrice(size.price)}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       {/* Price */}
                       <div className="text-right">
                         <p className="font-bold text-lg">
-                          {formatPrice(item.basePrice)}
+                          {hasSizes(item) ? (
+                            <span className="text-sm text-muted-foreground">ab </span>
+                          ) : null}
+                          {formatPrice(getItemPrice(item))}
                         </p>
                       </div>
 
@@ -398,13 +426,13 @@ export default function MenuManagementPage() {
       </div>
 
       {/* Instructions */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-green-50 border-green-200">
         <CardContent className="p-4">
-          <h3 className="font-semibold text-blue-900 mb-2">💡 Hinweis</h3>
-          <p className="text-sm text-blue-800">
-            Änderungen werden derzeit nur lokal gespeichert. Um die Speisekarte
-            dauerhaft zu aktualisieren, müssen die Daten in der Datenbank
-            gespeichert werden. Die API-Anbindung ist vorbereitet.
+          <h3 className="font-semibold text-green-900 mb-2">✓ Datenbank verbunden</h3>
+          <p className="text-sm text-green-800">
+            Die Speisekarte wird aus der Datenbank geladen.
+            Bearbeiten und Löschen wird in einer zukünftigen Version verfügbar sein.
+            Neue Artikel können aktuell über das Datenbank-Seed-Skript hinzugefügt werden.
           </p>
         </CardContent>
       </Card>
