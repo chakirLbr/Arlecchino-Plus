@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import { Award, ChefHat, Clock, Flame, Leaf, ArrowRight } from 'lucide-react';
+import { Award, Clock, Flame, Leaf, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -95,15 +95,13 @@ export default function AboutPage() {
         <div className="container-wide">
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
             <div className="relative aspect-[4/3] bg-gradient-to-br from-brand-cream-100 to-brand-cream-50 rounded-2xl overflow-hidden">
-              {/* Placeholder for restaurant/kitchen image */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <ChefHat className="h-24 w-24 mx-auto text-brand-red-200 mb-4" />
-                  <p className="text-muted-foreground text-sm">
-                    [Bild: Restaurant / Steinofen]
-                  </p>
-                </div>
-              </div>
+              <Image
+                src="/images/ueber-uns/unsere_geschichte.jpg"
+                alt="Arlecchino Plus Restaurant"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
             </div>
 
             <div className="space-y-6">
@@ -195,15 +193,13 @@ export default function AboutPage() {
             </div>
 
             <div className="order-1 lg:order-2 relative aspect-[3/4] bg-gradient-to-br from-brand-cream-100 to-brand-cream-50 rounded-2xl overflow-hidden">
-              {/* Placeholder for chef image */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center p-8">
-                  <ChefHat className="h-24 w-24 mx-auto text-brand-red-200 mb-4" />
-                  <p className="text-muted-foreground text-sm">
-                    [Foto: Tonino Pisano]
-                  </p>
-                </div>
-              </div>
+              <Image
+                src="/images/ueber-uns/tonino_pisano.jpg"
+                alt="Tonino Pisano - Pizzaiolo"
+                fill
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
             </div>
           </div>
         </div>
@@ -266,18 +262,29 @@ export default function AboutPage() {
             </h2>
           </div>
 
-          <div className="max-w-3xl mx-auto">
-            <Card className="p-8 bg-brand-cream-50 border-none">
-              <blockquote className="text-xl text-center italic text-muted-foreground mb-6">
-                "Hier gibt es die zweitbeste Pizza Deutschlands – und das
-                mitten in Haan. Tonino Pisano hat bei der Deutschen Meisterschaft
-                der Pizzabäcker bewiesen, dass wahre Handwerkskunst keine
-                Grenzen kennt."
-              </blockquote>
-              <p className="text-center text-sm text-muted-foreground">
-                — [Presseartikel Placeholder]
-              </p>
-            </Card>
+          <div className="max-w-4xl mx-auto">
+            <div className="grid gap-8 lg:grid-cols-2 items-center">
+              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
+                <Image
+                  src="/images/ueber-uns/medien.jpg"
+                  alt="Arlecchino Plus in den Medien"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+              </div>
+              <Card className="p-8 bg-brand-cream-50 border-none">
+                <blockquote className="text-xl italic text-muted-foreground mb-6">
+                  "Hier gibt es die zweitbeste Pizza Deutschlands – und das
+                  mitten in Haan. Tonino Pisano hat bei der Deutschen Meisterschaft
+                  der Pizzabäcker bewiesen, dass wahre Handwerkskunst keine
+                  Grenzen kennt."
+                </blockquote>
+                <p className="text-sm text-muted-foreground">
+                  — Presseartikel
+                </p>
+              </Card>
+            </div>
           </div>
 
           {/* Press Kit */}
