@@ -84,34 +84,46 @@ const signaturePizzas = [
 export default function HomePage() {
   return (
     <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        {/* Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-cream-100 via-white to-brand-cream-50" />
+      {/* Hero Section with Video Background */}
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+        {/* Video Background */}
+        <div className="absolute inset-0 z-0">
+          <video
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover"
+          >
+            <source src="/videos/hero-video.mp4" type="video/mp4" />
+          </video>
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-black/50" />
+        </div>
 
         {/* Hero Text Content */}
-        <div className="container-wide relative z-10 pt-28 pb-12 lg:pt-32">
+        <div className="container-wide relative z-10 pt-20 pb-12 lg:pt-24">
           <div className="max-w-3xl mx-auto text-center space-y-8">
             {/* Award Badge */}
-            <div className="inline-flex items-center gap-2 rounded-full bg-brand-red-50 px-4 py-2 text-sm font-medium text-brand-red-700">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white border border-white/30">
               <Award className="h-4 w-4" />
               <span>Mehrfach ausgezeichnete Pizzeria</span>
             </div>
 
             {/* Headline */}
             <div className="space-y-4">
-              <h1 className="font-heading text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-7xl">
+              <h1 className="font-heading text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-7xl drop-shadow-lg">
                 Steinofenpizza
                 <br />
-                <span className="text-brand-red-600">in Haan</span>
+                <span className="text-brand-red-400">in Haan</span>
               </h1>
-              <p className="text-xl text-muted-foreground lg:text-2xl">
+              <p className="text-xl text-white/90 lg:text-2xl">
                 Frisch. Schnell. Ausgezeichnet.
               </p>
             </div>
 
             {/* Description */}
-            <p className="max-w-2xl mx-auto text-muted-foreground text-lg">
+            <p className="max-w-2xl mx-auto text-white/80 text-lg">
               Erleben Sie authentische italienische Pizza, zubereitet von unserem
               preisgekrönten Pizzaiolo Tonino Pisano. Aus dem Steinofen direkt zu Ihnen.
             </p>
@@ -125,7 +137,7 @@ export default function HomePage() {
                 </Button>
               </Link>
               <Link href="/reservierung">
-                <Button size="xl" variant="outline" className="w-full sm:w-auto">
+                <Button size="xl" variant="outline" className="w-full sm:w-auto bg-white/10 border-white text-white hover:bg-white hover:text-foreground">
                   Tisch reservieren
                 </Button>
               </Link>
@@ -136,43 +148,20 @@ export default function HomePage() {
               {features.map((feature) => (
                 <div
                   key={feature.title}
-                  className="flex items-center gap-2 rounded-full bg-white px-4 py-2 shadow-sm border"
+                  className="flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-sm px-4 py-2 border border-white/30"
                 >
-                  <feature.icon className="h-4 w-4 text-brand-red-600" />
-                  <span className="text-sm font-medium">{feature.title}</span>
+                  <feature.icon className="h-4 w-4 text-white" />
+                  <span className="text-sm font-medium text-white">{feature.title}</span>
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Hero Video Banner */}
-        <div className="relative mt-8 mb-0">
-          <div className="container-wide">
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-              <video
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="w-full aspect-video object-cover"
-              >
-                <source src="/videos/hero-video.mp4" type="video/mp4" />
-              </video>
-              {/* Subtle overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10" />
-              {/* Optional text overlay on video */}
-              <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between">
-                <div className="text-white">
-                  <p className="text-sm font-medium opacity-90">Tonino Pisano</p>
-                  <p className="text-xs opacity-70">Preisgekrönter Pizzaiolo</p>
-                </div>
-                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5">
-                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                  <span className="text-white text-xs font-medium">Live aus der Küche</span>
-                </div>
-              </div>
-            </div>
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+          <div className="w-6 h-10 rounded-full border-2 border-white/50 flex items-start justify-center p-2">
+            <div className="w-1 h-2 bg-white/80 rounded-full animate-bounce" />
           </div>
         </div>
       </section>
