@@ -71,7 +71,7 @@ export default function AdminLoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@arlecchino-plus.de"
+                placeholder="E-Mail-Adresse"
                 required
                 autoComplete="email"
                 disabled={loading}
