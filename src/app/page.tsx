@@ -136,7 +136,7 @@ export default function HomePage() {
                 </Button>
               </Link>
               <Link href="/reservierung">
-                <Button size="xl" variant="outline" className="w-full sm:w-auto bg-white/10 border-white text-white hover:bg-white hover:text-foreground">
+                <Button size="xl" className="w-full sm:w-auto bg-white/10 border-2 border-white text-white hover:bg-white hover:text-foreground">
                   Tisch reservieren
                 </Button>
               </Link>
@@ -166,7 +166,7 @@ export default function HomePage() {
       </section>
 
       {/* Awards Strip */}
-      <section className="bg-foreground text-background py-6">
+      <section className="bg-zinc-900 text-white py-6">
         <div className="container-wide">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-4">

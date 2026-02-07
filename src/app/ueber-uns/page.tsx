@@ -206,7 +206,7 @@ export default function AboutPage() {
       </section>
 
       {/* Awards Section */}
-      <section id="awards" className="section bg-foreground text-background">
+      <section id="awards" className="section bg-zinc-900 text-white">
         <div className="container-wide">
           <div className="text-center mb-12">
             <Award className="h-12 w-12 mx-auto text-yellow-400 mb-4" />
@@ -322,8 +322,7 @@ export default function AboutPage() {
             <Link href="/reservierung">
               <Button
                 size="xl"
-                variant="outline"
-                className="w-full sm:w-auto border-white bg-transparent text-white hover:bg-white hover:text-brand-red-600"
+                className="w-full sm:w-auto border-2 border-white bg-transparent text-white hover:bg-white hover:text-brand-red-600"
               >
                 Tisch reservieren
               </Button>
