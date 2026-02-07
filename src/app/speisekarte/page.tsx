@@ -15,6 +15,7 @@ import {
   Flame,
   Leaf,
   Loader2,
+  AlertTriangle,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,6 +82,8 @@ export default function MenuPage() {
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
   const [cartOpen, setCartOpen] = useState(false);
+  const [acceptingOrders, setAcceptingOrders] = useState(true);
+  const [ordersPausedMessage, setOrdersPausedMessage] = useState('');
 
   const {
     items: cartItems,
@@ -136,6 +139,25 @@ export default function MenuPage() {
     fetchMenu();
   }, []);
 
+  // Check if orders are being accepted
+  useEffect(() => {
+    async function checkOrderStatus() {
+      try {
+        const response = await fetch('/api/settings');
+        const data = await response.json();
+        setAcceptingOrders(data.acceptingOrders);
+        setOrdersPausedMessage(data.ordersPausedMessage || '');
+      } catch (error) {
+        console.error('Failed to fetch settings:', error);
+      }
+    }
+
+    checkOrderStatus();
+    // Check every 30 seconds in case admin changes it
+    const interval = setInterval(checkOrderStatus, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const filteredItems = useMemo(() => {
@@ -188,6 +210,23 @@ export default function MenuPage() {
 
   return (
     <div className="pt-20 min-h-screen bg-muted">
+      {/* Orders Paused Banner */}
+      {!acceptingOrders && (
+        <div className="bg-orange-500 text-white">
+          <div className="container-wide py-4">
+            <div className="flex items-center justify-center gap-3 text-center">
+              <AlertTriangle className="h-6 w-6 shrink-0" />
+              <div>
+                <p className="font-semibold">Bestellungen vorübergehend pausiert</p>
+                <p className="text-sm text-white/90">
+                  {ordersPausedMessage || 'Wir nehmen momentan keine Bestellungen an. Bitte versuchen Sie es später erneut.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Order Type Banner */}
       <div className="bg-background border-b sticky top-16 z-40">
         <div className="container-wide py-4">

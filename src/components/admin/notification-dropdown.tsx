@@ -26,8 +26,23 @@ function playNotificationSound() {
   try {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
 
+    // Get settings from localStorage
+    const volume = parseInt(localStorage.getItem('notification-volume') || '100') / 100;
+    const soundType = localStorage.getItem('notification-sound-type') || 'default';
+
+    // Sound frequencies based on type
+    const soundFrequencies: Record<string, number[]> = {
+      default: [1200, 1200, 1500],
+      urgent: [1500, 1500, 1800],
+      gentle: [800, 900, 1000],
+      alarm: [1800, 1800, 2000],
+    };
+
+    const frequencies = soundFrequencies[soundType] || soundFrequencies.default;
+    const waveType = soundType === 'gentle' ? 'sine' : 'square';
+
     // Create a loud, attention-grabbing notification sound
-    const playTone = (frequency: number, startTime: number, duration: number, volume: number = 1.0) => {
+    const playTone = (frequency: number, startTime: number, duration: number, vol: number = 1.0) => {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -35,9 +50,9 @@ function playNotificationSound() {
       gainNode.connect(audioContext.destination);
 
       oscillator.frequency.value = frequency;
-      oscillator.type = 'square'; // Square wave is louder and more noticeable
+      oscillator.type = waveType as OscillatorType;
 
-      gainNode.gain.setValueAtTime(volume, startTime);
+      gainNode.gain.setValueAtTime(vol * volume, startTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
 
       oscillator.start(startTime);
@@ -45,19 +60,20 @@ function playNotificationSound() {
     };
 
     const now = audioContext.currentTime;
+    const [f1, f2, f3] = frequencies;
 
     // Play a loud 3-beep pattern (like a restaurant order bell)
     // First beep
-    playTone(1200, now, 0.15, 1.0);
+    playTone(f1, now, 0.15, 1.0);
     // Second beep
-    playTone(1200, now + 0.2, 0.15, 1.0);
+    playTone(f2, now + 0.2, 0.15, 1.0);
     // Third beep (higher pitch)
-    playTone(1500, now + 0.4, 0.25, 1.0);
+    playTone(f3, now + 0.4, 0.25, 1.0);
 
     // Repeat after short pause for extra attention
-    playTone(1200, now + 0.8, 0.15, 1.0);
-    playTone(1200, now + 1.0, 0.15, 1.0);
-    playTone(1500, now + 1.2, 0.25, 1.0);
+    playTone(f1, now + 0.8, 0.15, 1.0);
+    playTone(f2, now + 1.0, 0.15, 1.0);
+    playTone(f3, now + 1.2, 0.25, 1.0);
 
   } catch (error) {
     console.log('Could not play notification sound:', error);

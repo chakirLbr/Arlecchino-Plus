@@ -76,6 +76,18 @@ function mapPaymentMethod(method: string): 'CARD' | 'PAYPAL' | 'APPLE_PAY' | 'GO
 // POST - Create a new order
 export async function POST(request: NextRequest) {
   try {
+    // Check if orders are being accepted
+    const acceptingOrdersSetting = await prisma.settings.findUnique({
+      where: { key: 'acceptingOrders' },
+    });
+
+    if (acceptingOrdersSetting?.value === false) {
+      return NextResponse.json(
+        { error: 'Wir nehmen momentan keine Bestellungen an. Bitte versuchen Sie es später erneut.' },
+        { status: 503 }
+      );
+    }
+
     const body = await request.json();
     const validatedData = createOrderSchema.parse(body);
 
