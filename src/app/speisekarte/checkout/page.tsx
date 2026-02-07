@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -12,6 +12,7 @@ import {
   Clock,
   ShoppingBag,
   Loader2,
+  Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { useCartStore } from '@/store/cart';
 import { formatPrice } from '@/lib/utils';
+import { StripeProvider } from '@/components/stripe/stripe-provider';
+import { PaymentForm } from '@/components/stripe/payment-form';
 
 const steps = [
   { id: 1, name: 'Warenkorb', icon: ShoppingBag },
@@ -34,6 +37,9 @@ export default function CheckoutPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderNumber, setOrderNumber] = useState('');
+  const [orderId, setOrderId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const {
     items,
@@ -58,7 +64,6 @@ export default function CheckoutPage() {
     deliveryNotes: '',
     deliveryTime: 'asap',
     scheduledTime: '',
-    paymentMethod: 'card',
     orderNotes: '',
     tip: 0,
     couponCode: '',
@@ -71,11 +76,24 @@ export default function CheckoutPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmitOrder = async () => {
+  // Create order and payment intent when moving to step 3
+  const handleProceedToPayment = async () => {
+    // Validate required fields
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone) {
+      alert('Bitte füllen Sie alle Pflichtfelder aus.');
+      return;
+    }
+
+    if (orderType === 'DELIVERY' && (!formData.street || !formData.postalCode || !formData.city)) {
+      alert('Bitte füllen Sie die Lieferadresse aus.');
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
-      const response = await fetch('/api/orders', {
+      // First create the order
+      const orderResponse = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -90,7 +108,7 @@ export default function CheckoutPage() {
           deliveryNotes: formData.deliveryNotes,
           deliveryTime: formData.deliveryTime,
           scheduledTime: formData.scheduledTime,
-          paymentMethod: formData.paymentMethod,
+          paymentMethod: 'card',
           items: items.map((item) => ({
             menuItemId: item.menuItemId,
             name: item.name,
@@ -111,20 +129,66 @@ export default function CheckoutPage() {
         }),
       });
 
-      const data = await response.json();
+      const orderData = await orderResponse.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Fehler beim Erstellen der Bestellung');
+      if (!orderResponse.ok) {
+        throw new Error(orderData.error || 'Fehler beim Erstellen der Bestellung');
       }
 
-      setOrderNumber(data.orderNumber);
-      setCurrentStep(4);
-      clearCart();
+      setOrderNumber(orderData.orderNumber);
+      setOrderId(orderData.id);
+
+      // Create payment intent
+      const totalInCents = Math.round((getTotal() + formData.tip) * 100);
+
+      const paymentResponse = await fetch('/api/stripe/create-payment-intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: totalInCents,
+          orderId: orderData.id,
+          customerEmail: formData.email,
+          customerName: `${formData.firstName} ${formData.lastName}`,
+        }),
+      });
+
+      const paymentData = await paymentResponse.json();
+
+      if (!paymentResponse.ok) {
+        throw new Error(paymentData.error || 'Fehler bei der Zahlungsvorbereitung');
+      }
+
+      setClientSecret(paymentData.clientSecret);
+      setCurrentStep(3);
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten');
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handlePaymentSuccess = async (paymentIntentId: string) => {
+    // Update order with payment info
+    try {
+      await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paymentStatus: 'PAID',
+          paymentIntentId,
+          status: 'CONFIRMED',
+        }),
+      });
+    } catch (error) {
+      console.error('Failed to update order:', error);
+    }
+
+    clearCart();
+    setCurrentStep(4);
+  };
+
+  const handlePaymentError = (error: string) => {
+    console.error('Payment error:', error);
   };
 
   // Redirect if cart is empty (except on confirmation step)
@@ -237,7 +301,7 @@ export default function CheckoutPage() {
                           )}
                           {item.notes && (
                             <p className="text-sm text-muted-foreground italic">
-                              "{item.notes}"
+                              &quot;{item.notes}&quot;
                             </p>
                           )}
                         </div>
@@ -502,9 +566,17 @@ export default function CheckoutPage() {
                     <Button
                       className="flex-1"
                       size="lg"
-                      onClick={() => setCurrentStep(3)}
+                      onClick={handleProceedToPayment}
+                      disabled={isProcessing}
                     >
-                      Weiter zur Bezahlung
+                      {isProcessing ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Wird vorbereitet...
+                        </>
+                      ) : (
+                        'Weiter zur Bezahlung'
+                      )}
                     </Button>
                   </div>
                 </CardContent>
@@ -512,113 +584,72 @@ export default function CheckoutPage() {
             )}
 
             {/* Step 3: Payment */}
-            {currentStep === 3 && (
+            {currentStep === 3 && clientSecret && (
               <Card>
                 <CardContent className="p-6">
                   <h2 className="text-xl font-bold mb-6">Bezahlung</h2>
 
-                  {/* Payment Methods */}
-                  <div className="space-y-3">
-                    {[
-                      { id: 'card', label: 'Kreditkarte / Debitkarte', icon: '💳' },
-                      { id: 'paypal', label: 'PayPal', icon: '🅿️' },
-                      { id: 'applepay', label: 'Apple Pay', icon: '🍎' },
-                      { id: 'googlepay', label: 'Google Pay', icon: '🔵' },
-                    ].map((method) => (
-                      <label
-                        key={method.id}
-                        className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                          formData.paymentMethod === method.id
-                            ? 'border-brand-red-600 bg-brand-red-600/10'
-                            : 'border-border hover:border-muted-foreground/50'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value={method.id}
-                          checked={formData.paymentMethod === method.id}
-                          onChange={handleInputChange}
-                          className="sr-only"
-                        />
-                        <span className="text-2xl">{method.icon}</span>
-                        <span className="font-medium">{method.label}</span>
-                      </label>
-                    ))}
-                  </div>
+                  {/* Stripe Payment Element */}
+                  <StripeProvider clientSecret={clientSecret}>
+                    <div className="space-y-6">
+                      {/* Terms must be accepted before payment */}
+                      <div className="p-4 bg-muted rounded-lg">
+                        <label className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={termsAccepted}
+                            onChange={(e) => setTermsAccepted(e.target.checked)}
+                            className="mt-1"
+                          />
+                          <span className="text-sm">
+                            Ich akzeptiere die{' '}
+                            <Link
+                              href="/agb"
+                              className="text-brand-red-600 hover:underline"
+                              target="_blank"
+                            >
+                              AGB
+                            </Link>{' '}
+                            und{' '}
+                            <Link
+                              href="/datenschutz"
+                              className="text-brand-red-600 hover:underline"
+                              target="_blank"
+                            >
+                              Datenschutzerklärung
+                            </Link>
+                            .
+                          </span>
+                        </label>
+                      </div>
 
-                  {/* Card Form Placeholder */}
-                  {formData.paymentMethod === 'card' && (
-                    <div className="mt-6 p-4 bg-muted rounded-lg">
-                      <p className="text-sm text-muted-foreground text-center">
-                        [Stripe Card Element wird hier eingefügt]
-                      </p>
-                      <div className="mt-4 space-y-4">
-                        <div>
-                          <Label>Kartennummer</Label>
-                          <Input placeholder="1234 5678 9012 3456" />
+                      {termsAccepted ? (
+                        <PaymentForm
+                          amount={getTotal() + formData.tip}
+                          onSuccess={handlePaymentSuccess}
+                          onError={handlePaymentError}
+                        />
+                      ) : (
+                        <div className="text-center py-8">
+                          <Lock className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                          <p className="text-muted-foreground">
+                            Bitte akzeptieren Sie die AGB und Datenschutzerklärung,
+                            <br />
+                            um die Zahlungsoptionen anzuzeigen.
+                          </p>
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label>Ablaufdatum</Label>
-                            <Input placeholder="MM/YY" />
-                          </div>
-                          <div>
-                            <Label>CVC</Label>
-                            <Input placeholder="123" />
-                          </div>
-                        </div>
+                      )}
+
+                      <div className="flex gap-4">
+                        <Button
+                          variant="outline"
+                          onClick={() => setCurrentStep(2)}
+                        >
+                          Zurück
+                        </Button>
                       </div>
                     </div>
-                  )}
-
-                  {/* Terms */}
-                  <div className="mt-6">
-                    <label className="flex items-start gap-2">
-                      <input type="checkbox" required className="mt-1" />
-                      <span className="text-sm">
-                        Ich akzeptiere die{' '}
-                        <Link
-                          href="/agb"
-                          className="text-brand-red-600 hover:underline"
-                        >
-                          AGB
-                        </Link>{' '}
-                        und{' '}
-                        <Link
-                          href="/datenschutz"
-                          className="text-brand-red-600 hover:underline"
-                        >
-                          Datenschutzerklärung
-                        </Link>
-                        .
-                      </span>
-                    </label>
-                  </div>
-
-                  <div className="flex gap-4 mt-6">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentStep(2)}
-                    >
-                      Zurück
-                    </Button>
-                    <Button
-                      className="flex-1"
-                      size="lg"
-                      onClick={handleSubmitOrder}
-                      disabled={isProcessing}
-                    >
-                      {isProcessing ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Wird verarbeitet...
-                        </>
-                      ) : (
-                        `Jetzt bezahlen (${formatPrice(getTotal() + formData.tip)})`
-                      )}
-                    </Button>
-                  </div>
+                  </StripeProvider>
                 </CardContent>
               </Card>
             )}
