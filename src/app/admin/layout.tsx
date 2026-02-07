@@ -19,6 +19,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 
 const navigation = [
   {
@@ -64,7 +65,7 @@ export default function AdminLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-100 lg:flex">
+    <div className="min-h-screen bg-muted lg:flex">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -76,7 +77,7 @@ export default function AdminLayout({
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:z-auto',
+          'fixed inset-y-0 left-0 z-50 w-64 bg-background shadow-lg transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:z-auto',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -111,8 +112,8 @@ export default function AdminLayout({
                 className={cn(
                   'flex items-center justify-between gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
                   isActive
-                    ? 'bg-brand-red-50 text-brand-red-600'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-brand-red-50 text-brand-red-600 dark:bg-brand-red-900/20'
+                    : 'text-muted-foreground hover:bg-muted'
                 )}
               >
                 <div className="flex items-center gap-3">
@@ -146,7 +147,7 @@ export default function AdminLayout({
       {/* Main content */}
       <div className="flex-1">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-white px-4 lg:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 lg:px-6">
           {/* Mobile menu button */}
           <button
             onClick={() => setSidebarOpen(true)}
@@ -165,6 +166,9 @@ export default function AdminLayout({
 
           {/* Right side actions */}
           <div className="flex items-center gap-2">
+            {/* Theme Toggle */}
+            <ThemeToggle />
+
             {/* Notifications */}
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />

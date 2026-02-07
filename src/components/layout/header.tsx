@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { CartSidebar } from '@/components/cart/cart-sidebar';
+import { ThemeToggle } from '@/components/theme/theme-toggle';
 
 const navigation = [
   { name: 'Speisekarte', href: '/speisekarte' },
@@ -79,6 +80,9 @@ export function Header() {
               <Phone className="h-4 w-4" />
               <span>02129 6663</span>
             </a>
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
 
             {/* Cart Button */}
             <CartSidebar />

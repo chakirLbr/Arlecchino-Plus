@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Playfair_Display, Inter } from 'next/font/google';
 import './globals.css';
 import { LayoutWrapper } from '@/components/layout/layout-wrapper';
+import { ThemeProvider } from '@/components/theme/theme-provider';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -136,7 +137,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="de" className={`${playfair.variable} ${inter.variable}`}>
+    <html lang="de" className={`${playfair.variable} ${inter.variable}`} suppressHydrationWarning>
       <head>
         <script
           type="application/ld+json"
@@ -144,7 +145,9 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body min-h-screen antialiased">
-        <LayoutWrapper>{children}</LayoutWrapper>
+        <ThemeProvider>
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </ThemeProvider>
       </body>
     </html>
   );
