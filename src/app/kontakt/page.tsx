@@ -45,10 +45,11 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    const form = e.currentTarget;
     setIsSubmitting(true);
     setSubmitStatus('idle');
 
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData(form);
     const data = {
       name: formData.get('name') as string,
       email: formData.get('email') as string,
@@ -64,11 +65,12 @@ export default function ContactPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send message');
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to send message');
       }
 
       setSubmitStatus('success');
-      e.currentTarget.reset();
+      form.reset();
     } catch (error) {
       console.error('Failed to send message:', error);
       setSubmitStatus('error');
@@ -319,6 +321,25 @@ export default function ContactPage() {
                         onClick={() => setSubmitStatus('idle')}
                       >
                         Weitere Nachricht senden
+                      </Button>
+                    </div>
+                  ) : submitStatus === 'error' ? (
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+                        <Mail className="h-8 w-8 text-red-600" />
+                      </div>
+                      <h4 className="font-semibold text-lg mb-2">
+                        Fehler beim Senden
+                      </h4>
+                      <p className="text-muted-foreground mb-4">
+                        Ihre Nachricht konnte nicht gesendet werden. Bitte versuchen
+                        Sie es erneut oder rufen Sie uns direkt an.
+                      </p>
+                      <Button
+                        variant="outline"
+                        onClick={() => setSubmitStatus('idle')}
+                      >
+                        Erneut versuchen
                       </Button>
                     </div>
                   ) : (
