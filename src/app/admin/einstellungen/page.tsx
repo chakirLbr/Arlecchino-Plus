@@ -582,7 +582,7 @@ export default function EinstellungenPage() {
               rows={2}
             />
             <p className="text-xs text-muted-foreground">
-              Diese Informationen werden auf der Kontaktseite angezeigt
+              Diese Informationen werden im Footer und auf der Kontaktseite angezeigt
             </p>
           </div>
 

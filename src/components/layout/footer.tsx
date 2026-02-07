@@ -1,15 +1,71 @@
 import Link from 'next/link';
 import { MapPin, Phone, Mail, Clock, Instagram } from 'lucide-react';
+import { db } from '@/lib/db';
 
-const openingHours = [
-  { day: 'Montag', hours: '17:00 - 22:00' },
-  { day: 'Dienstag', hours: '11:00 - 14:30, 17:00 - 22:00' },
-  { day: 'Mittwoch', hours: '11:00 - 14:30, 17:00 - 22:00' },
-  { day: 'Donnerstag', hours: '11:00 - 14:30, 17:00 - 22:00' },
-  { day: 'Freitag', hours: '11:00 - 14:30, 17:00 - 22:00' },
-  { day: 'Samstag', hours: '12:00 - 22:00' },
-  { day: 'Sonntag', hours: '12:00 - 22:00' },
-];
+// Default restaurant info
+const defaultRestaurantInfo = {
+  restaurantName: 'Arlecchino Plus',
+  restaurantStreet: 'Kölner Str. 1',
+  restaurantPostalCode: '42781',
+  restaurantCity: 'Haan',
+  restaurantPhone: '02129 6663',
+  restaurantEmail: 'info@arlecchino-plus.de',
+  openingHours: 'Mo: 17:00-22:00, Di-Fr: 11:00-14:30, 17:00-22:00, Sa-So: 12:00-22:00',
+};
+
+// Fetch restaurant settings from database
+async function getRestaurantInfo() {
+  try {
+    const settings = await db.settings.findMany({
+      where: {
+        key: {
+          in: [
+            'restaurantName',
+            'restaurantStreet',
+            'restaurantPostalCode',
+            'restaurantCity',
+            'restaurantPhone',
+            'restaurantEmail',
+            'openingHours',
+          ],
+        },
+      },
+    });
+
+    const info = { ...defaultRestaurantInfo };
+    settings.forEach((s) => {
+      if (s.key in info) {
+        (info as any)[s.key] = s.value as string;
+      }
+    });
+
+    return info;
+  } catch (error) {
+    console.error('Failed to fetch restaurant info:', error);
+    return defaultRestaurantInfo;
+  }
+}
+
+// Parse opening hours string into structured format
+function parseOpeningHours(hoursString: string) {
+  // Default fallback
+  const defaultHours = [
+    { day: 'Montag', hours: '17:00 - 22:00' },
+    { day: 'Dienstag', hours: '11:00 - 14:30, 17:00 - 22:00' },
+    { day: 'Mittwoch', hours: '11:00 - 14:30, 17:00 - 22:00' },
+    { day: 'Donnerstag', hours: '11:00 - 14:30, 17:00 - 22:00' },
+    { day: 'Freitag', hours: '11:00 - 14:30, 17:00 - 22:00' },
+    { day: 'Samstag', hours: '12:00 - 22:00' },
+    { day: 'Sonntag', hours: '12:00 - 22:00' },
+  ];
+
+  if (!hoursString || hoursString === defaultRestaurantInfo.openingHours) {
+    return defaultHours;
+  }
+
+  // Try to parse custom format or return as single entry
+  return [{ day: 'Öffnungszeiten', hours: hoursString }];
+}
 
 const quickLinks = [
   { name: 'Speisekarte', href: '/speisekarte' },
@@ -25,8 +81,14 @@ const legalLinks = [
   { name: 'AGB', href: '/agb' },
 ];
 
-export function Footer() {
+export async function Footer() {
   const currentYear = new Date().getFullYear();
+  const restaurantInfo = await getRestaurantInfo();
+  const openingHours = parseOpeningHours(restaurantInfo.openingHours);
+
+  const fullAddress = `${restaurantInfo.restaurantStreet}, ${restaurantInfo.restaurantPostalCode} ${restaurantInfo.restaurantCity}`;
+  const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(fullAddress)}`;
+  const phoneClean = restaurantInfo.restaurantPhone.replace(/\s/g, '');
 
   return (
     <footer className="bg-zinc-900 text-white">
@@ -37,35 +99,39 @@ export function Footer() {
           <div className="space-y-4">
             <Link href="/" className="inline-block">
               <span className="font-heading text-2xl font-bold text-white">
-                Arlecchino<span className="text-brand-olive-400">+</span>
+                {restaurantInfo.restaurantName.includes('Arlecchino') ? (
+                  <>Arlecchino<span className="text-brand-olive-400">+</span></>
+                ) : (
+                  restaurantInfo.restaurantName
+                )}
               </span>
             </Link>
             <p className="text-sm text-gray-400">
-              Authentische Steinofenpizza in Haan. Frisch zubereitet mit Liebe und Leidenschaft.
+              Authentische Steinofenpizza in {restaurantInfo.restaurantCity}. Frisch zubereitet mit Liebe und Leidenschaft.
             </p>
             <div className="space-y-2">
               <a
-                href="https://maps.google.com/?q=Kölner+Str.+1,+42781+Haan"
+                href={mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-start space-x-2 text-sm text-gray-400 hover:text-white transition-colors"
               >
                 <MapPin className="h-4 w-4 mt-0.5 shrink-0" />
-                <span>Kölner Str. 1, 42781 Haan</span>
+                <span>{fullAddress}</span>
               </a>
               <a
-                href="tel:021296663"
+                href={`tel:${phoneClean}`}
                 className="flex items-center space-x-2 text-sm text-gray-400 hover:text-white transition-colors"
               >
                 <Phone className="h-4 w-4 shrink-0" />
-                <span>02129 6663</span>
+                <span>{restaurantInfo.restaurantPhone}</span>
               </a>
               <a
-                href="mailto:info@arlecchino-plus.de"
+                href={`mailto:${restaurantInfo.restaurantEmail}`}
                 className="flex items-center space-x-2 text-sm text-gray-400 hover:text-white transition-colors"
               >
                 <Mail className="h-4 w-4 shrink-0" />
-                <span>info@arlecchino-plus.de</span>
+                <span>{restaurantInfo.restaurantEmail}</span>
               </a>
             </div>
             {/* Social */}
@@ -151,7 +217,7 @@ export function Footer() {
         <div className="container-wide py-6">
           <div className="flex flex-col items-center justify-between space-y-4 md:flex-row md:space-y-0">
             <p className="text-sm text-gray-500">
-              &copy; {currentYear} Arlecchino Plus. Alle Rechte vorbehalten.
+              &copy; {currentYear} {restaurantInfo.restaurantName}. Alle Rechte vorbehalten.
             </p>
             <nav className="flex flex-wrap justify-center gap-4 md:gap-6">
               {legalLinks.map((link) => (
