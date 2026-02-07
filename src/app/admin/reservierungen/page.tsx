@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Calendar,
   Clock,
@@ -13,71 +13,29 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
-// Sample reservations data
-const initialReservations = [
-  {
-    id: '1',
-    reservationNumber: 'AR-2025-000001',
-    guestFirstName: 'Max',
-    guestLastName: 'Mustermann',
-    guestEmail: 'max@beispiel.de',
-    guestPhone: '0151 12345678',
-    date: '2025-02-06',
-    time: '19:00',
-    partySize: 4,
-    status: 'CONFIRMED',
-    specialRequests: 'Hochstuhl benötigt',
-    createdAt: '2025-02-04T10:30:00',
-  },
-  {
-    id: '2',
-    reservationNumber: 'AR-2025-000002',
-    guestFirstName: 'Sarah',
-    guestLastName: 'Klein',
-    guestEmail: 'sarah@beispiel.de',
-    guestPhone: '0171 9876543',
-    date: '2025-02-06',
-    time: '20:00',
-    partySize: 2,
-    status: 'PENDING',
-    specialRequests: '',
-    createdAt: '2025-02-05T14:15:00',
-  },
-  {
-    id: '3',
-    reservationNumber: 'AR-2025-000003',
-    guestFirstName: 'Thomas',
-    guestLastName: 'Hofmann',
-    guestEmail: 'thomas@beispiel.de',
-    guestPhone: '0152 11223344',
-    date: '2025-02-07',
-    time: '18:30',
-    partySize: 6,
-    status: 'CONFIRMED',
-    specialRequests: 'Geburtstagsfeier, Tisch dekorieren wenn möglich',
-    createdAt: '2025-02-03T09:00:00',
-  },
-  {
-    id: '4',
-    reservationNumber: 'AR-2025-000004',
-    guestFirstName: 'Anna',
-    guestLastName: 'Weber',
-    guestEmail: 'anna@beispiel.de',
-    guestPhone: '0163 55667788',
-    date: '2025-02-08',
-    time: '19:30',
-    partySize: 3,
-    status: 'PENDING',
-    specialRequests: '',
-    createdAt: '2025-02-05T16:45:00',
-  },
-];
+interface Reservation {
+  id: string;
+  reservationNumber: string;
+  guestFirstName: string;
+  guestLastName: string;
+  guestEmail: string;
+  guestPhone: string;
+  date: string;
+  time: string;
+  partySize: number;
+  status: string;
+  specialRequests: string | null;
+  internalNotes: string | null;
+  createdAt: string;
+}
 
 const statusConfig: Record<string, { label: string; color: string; icon: typeof CheckCircle }> = {
   PENDING: {
@@ -108,27 +66,71 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
 };
 
 export default function ReservationsPage() {
-  const [reservations, setReservations] = useState(initialReservations);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [filter, setFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Get reservations for selected date
+  // Fetch reservations from API
+  const fetchReservations = async () => {
+    try {
+      setIsLoading(true);
+      const params = new URLSearchParams();
+      if (selectedDate) params.set('date', selectedDate);
+      if (filter !== 'all') params.set('status', filter);
+
+      const response = await fetch(`/api/admin/reservations?${params.toString()}`);
+      if (!response.ok) throw new Error('Fehler beim Laden');
+      const data = await response.json();
+      setReservations(data.reservations || []);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReservations();
+  }, [selectedDate, filter]);
+
+  // Get all reservations for the week view (without date filter)
+  const [allReservations, setAllReservations] = useState<Reservation[]>([]);
+
+  useEffect(() => {
+    async function fetchAll() {
+      try {
+        const response = await fetch('/api/admin/reservations');
+        if (response.ok) {
+          const data = await response.json();
+          setAllReservations(data.reservations || []);
+        }
+      } catch {
+        // Silently fail for background fetch
+      }
+    }
+    fetchAll();
+  }, []);
+
+  // Get filtered reservations
   const filteredReservations = reservations.filter((res) => {
-    const matchesDate = res.date === selectedDate;
-    const matchesFilter = filter === 'all' || res.status === filter;
-    const matchesSearch =
-      searchQuery === '' ||
-      res.guestFirstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      res.guestLastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      res.guestPhone.includes(searchQuery) ||
-      res.reservationNumber.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesDate && matchesFilter && matchesSearch;
+    if (searchQuery === '') return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      res.guestFirstName.toLowerCase().includes(query) ||
+      res.guestLastName.toLowerCase().includes(query) ||
+      res.guestPhone.includes(query) ||
+      res.reservationNumber.toLowerCase().includes(query)
+    );
   });
 
   // Get counts for the week
   const getDateReservationCount = (date: string) => {
-    return reservations.filter((r) => r.date === date).length;
+    return allReservations.filter((r) => r.date === date).length;
   };
 
   // Generate week dates
@@ -150,12 +152,33 @@ export default function ReservationsPage() {
   const weekDates = getWeekDates();
   const dayNames = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 
-  const updateStatus = (id: string, newStatus: string) => {
-    setReservations(
-      reservations.map((res) =>
-        res.id === id ? { ...res, status: newStatus } : res
-      )
-    );
+  const updateStatus = async (id: string, newStatus: string) => {
+    try {
+      setIsUpdating(true);
+      const response = await fetch(`/api/admin/reservations/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) throw new Error('Fehler beim Aktualisieren');
+
+      // Update local state
+      setReservations((prev) =>
+        prev.map((res) =>
+          res.id === id ? { ...res, status: newStatus } : res
+        )
+      );
+      setAllReservations((prev) =>
+        prev.map((res) =>
+          res.id === id ? { ...res, status: newStatus } : res
+        )
+      );
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const navigateWeek = (direction: 'prev' | 'next') => {
@@ -164,8 +187,8 @@ export default function ReservationsPage() {
     setSelectedDate(current.toISOString().split('T')[0]);
   };
 
-  // Stats for today
-  const todayReservations = reservations.filter((r) => r.date === selectedDate);
+  // Stats for selected date
+  const todayReservations = reservations;
   const totalGuests = todayReservations.reduce((sum, r) => sum + r.partySize, 0);
   const pendingCount = todayReservations.filter((r) => r.status === 'PENDING').length;
 
@@ -179,7 +202,19 @@ export default function ReservationsPage() {
             Verwalten Sie Tischreservierungen
           </p>
         </div>
+        <Button variant="outline" onClick={fetchReservations} disabled={isLoading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          Aktualisieren
+        </Button>
       </div>
+
+      {error && (
+        <Card className="bg-red-50 border-red-200">
+          <CardContent className="p-4 text-red-800">
+            {error}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-3">
@@ -190,7 +225,7 @@ export default function ReservationsPage() {
             </div>
             <div>
               <p className="text-2xl font-bold">{todayReservations.length}</p>
-              <p className="text-sm text-muted-foreground">Reservierungen heute</p>
+              <p className="text-sm text-muted-foreground">Reservierungen</p>
             </div>
           </CardContent>
         </Card>
@@ -308,114 +343,130 @@ export default function ReservationsPage() {
       </div>
 
       {/* Reservations List */}
-      <div className="space-y-4">
-        {filteredReservations.length === 0 ? (
-          <Card>
-            <CardContent className="p-8 text-center">
-              <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">
-                Keine Reservierungen für diesen Tag.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          filteredReservations
-            .sort((a, b) => a.time.localeCompare(b.time))
-            .map((reservation) => {
-              const config = statusConfig[reservation.status];
-              const StatusIcon = config.icon;
-              return (
-                <Card key={reservation.id}>
-                  <CardContent className="p-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                      {/* Time */}
-                      <div className="flex items-center gap-3 sm:w-24">
-                        <Clock className="h-5 w-5 text-muted-foreground" />
-                        <span className="text-xl font-bold">{reservation.time}</span>
-                      </div>
-
-                      {/* Guest Info */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold">
-                            {reservation.guestFirstName} {reservation.guestLastName}
-                          </h3>
-                          <Badge className={config.color}>
-                            <StatusIcon className="h-3 w-3 mr-1" />
-                            {config.label}
-                          </Badge>
+      {isLoading ? (
+        <div className="flex items-center justify-center min-h-[200px]">
+          <Loader2 className="h-8 w-8 animate-spin text-brand-red-600" />
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredReservations.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <Calendar className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">
+                  {reservations.length === 0
+                    ? 'Keine Reservierungen für diesen Tag.'
+                    : 'Keine Reservierungen gefunden.'}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            filteredReservations
+              .sort((a, b) => a.time.localeCompare(b.time))
+              .map((reservation) => {
+                const config = statusConfig[reservation.status] || statusConfig.PENDING;
+                const StatusIcon = config.icon;
+                return (
+                  <Card key={reservation.id}>
+                    <CardContent className="p-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                        {/* Time */}
+                        <div className="flex items-center gap-3 sm:w-24">
+                          <Clock className="h-5 w-5 text-muted-foreground" />
+                          <span className="text-xl font-bold">{reservation.time}</span>
                         </div>
-                        <div className="flex flex-wrap gap-4 mt-1 text-sm text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            <Users className="h-4 w-4" />
-                            {reservation.partySize} Personen
-                          </span>
-                          <a
-                            href={`tel:${reservation.guestPhone}`}
-                            className="flex items-center gap-1 hover:text-brand-red-600"
-                          >
-                            <Phone className="h-4 w-4" />
-                            {reservation.guestPhone}
-                          </a>
-                          <span className="flex items-center gap-1">
-                            <Mail className="h-4 w-4" />
-                            {reservation.guestEmail}
-                          </span>
-                        </div>
-                        {reservation.specialRequests && (
-                          <p className="text-sm mt-2 p-2 bg-yellow-50 rounded text-yellow-800">
-                            💬 {reservation.specialRequests}
-                          </p>
-                        )}
-                      </div>
 
-                      {/* Actions */}
-                      <div className="flex gap-2">
-                        {reservation.status === 'PENDING' && (
-                          <>
-                            <Button
-                              size="sm"
-                              onClick={() => updateStatus(reservation.id, 'CONFIRMED')}
+                        {/* Guest Info */}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold">
+                              {reservation.guestFirstName} {reservation.guestLastName}
+                            </h3>
+                            <Badge className={config.color}>
+                              <StatusIcon className="h-3 w-3 mr-1" />
+                              {config.label}
+                            </Badge>
+                          </div>
+                          <div className="flex flex-wrap gap-4 mt-1 text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Users className="h-4 w-4" />
+                              {reservation.partySize} Personen
+                            </span>
+                            <a
+                              href={`tel:${reservation.guestPhone}`}
+                              className="flex items-center gap-1 hover:text-brand-red-600"
                             >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Bestätigen
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => updateStatus(reservation.id, 'CANCELLED')}
-                            >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Absagen
-                            </Button>
-                          </>
-                        )}
-                        {reservation.status === 'CONFIRMED' && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => updateStatus(reservation.id, 'COMPLETED')}
-                            >
-                              Abschließen
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => updateStatus(reservation.id, 'NO_SHOW')}
-                            >
-                              No-Show
-                            </Button>
-                          </>
-                        )}
+                              <Phone className="h-4 w-4" />
+                              {reservation.guestPhone}
+                            </a>
+                            <span className="flex items-center gap-1">
+                              <Mail className="h-4 w-4" />
+                              {reservation.guestEmail}
+                            </span>
+                          </div>
+                          {reservation.specialRequests && (
+                            <p className="text-sm mt-2 p-2 bg-yellow-50 rounded text-yellow-800">
+                              {reservation.specialRequests}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-2">
+                          {reservation.status === 'PENDING' && (
+                            <>
+                              <Button
+                                size="sm"
+                                disabled={isUpdating}
+                                onClick={() => updateStatus(reservation.id, 'CONFIRMED')}
+                              >
+                                {isUpdating ? (
+                                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                                ) : (
+                                  <CheckCircle className="h-4 w-4 mr-1" />
+                                )}
+                                Bestätigen
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={isUpdating}
+                                onClick={() => updateStatus(reservation.id, 'CANCELLED')}
+                              >
+                                <XCircle className="h-4 w-4 mr-1" />
+                                Absagen
+                              </Button>
+                            </>
+                          )}
+                          {reservation.status === 'CONFIRMED' && (
+                            <>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={isUpdating}
+                                onClick={() => updateStatus(reservation.id, 'COMPLETED')}
+                              >
+                                Abschließen
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={isUpdating}
+                                onClick={() => updateStatus(reservation.id, 'NO_SHOW')}
+                              >
+                                No-Show
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })
-        )}
-      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+          )}
+        </div>
+      )}
     </div>
   );
 }

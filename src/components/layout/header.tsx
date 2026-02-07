@@ -3,11 +3,11 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, ShoppingCart, X, Phone } from 'lucide-react';
+import { Menu, X, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useCartStore } from '@/store/cart';
+import { CartSidebar } from '@/components/cart/cart-sidebar';
 
 const navigation = [
   { name: 'Speisekarte', href: '/speisekarte' },
@@ -20,9 +20,6 @@ export function Header() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
-  const { items } = useCartStore();
-
-  const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -84,21 +81,7 @@ export function Header() {
             </a>
 
             {/* Cart Button */}
-            <Link href="/speisekarte">
-              <Button
-                variant="outline"
-                size="icon"
-                className="relative"
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {cartItemCount > 0 && (
-                  <span className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-red-600 text-xs font-medium text-white">
-                    {cartItemCount > 9 ? '9+' : cartItemCount}
-                  </span>
-                )}
-                <span className="sr-only">Warenkorb</span>
-              </Button>
-            </Link>
+            <CartSidebar />
 
             {/* Order CTA - Desktop */}
             <Link href="/speisekarte" className="hidden lg:block">

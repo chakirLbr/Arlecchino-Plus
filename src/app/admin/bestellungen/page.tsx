@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Search,
-  Filter,
   Clock,
   Phone,
   MapPin,
@@ -12,67 +11,47 @@ import {
   Truck,
   CheckCircle,
   Printer,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { formatPrice, formatDateTime } from '@/lib/utils';
+import { formatPrice } from '@/lib/utils';
 
-// Mock orders data
-const mockOrders = [
-  {
-    id: 'clx1',
-    orderNumber: 'AP-2025-001234',
-    status: 'CONFIRMED',
-    orderType: 'DELIVERY',
-    createdAt: new Date(Date.now() - 5 * 60000).toISOString(),
-    customerFirstName: 'Max',
-    customerLastName: 'Mustermann',
-    customerPhone: '0151 12345678',
-    deliveryAddress: 'Musterstraße 1, 42781 Haan',
-    items: [
-      { name: 'Pizza Margherita', size: 'Normal (32cm)', quantity: 1, totalPrice: 10.0 },
-      { name: 'Pizza Diavola', size: 'Groß (40cm)', quantity: 1, totalPrice: 14.5 },
-    ],
-    total: 27.0,
-    orderNotes: 'Bitte klingeln, Klingel defekt',
-  },
-  {
-    id: 'clx2',
-    orderNumber: 'AP-2025-001233',
-    status: 'PREPARING',
-    orderType: 'PICKUP',
-    createdAt: new Date(Date.now() - 10 * 60000).toISOString(),
-    customerFirstName: 'Sarah',
-    customerLastName: 'Klein',
-    customerPhone: '0171 9876543',
-    deliveryAddress: null,
-    items: [
-      { name: 'Spaghetti Bolognese', size: null, quantity: 2, totalPrice: 19.0 },
-    ],
-    total: 19.0,
-    orderNotes: null,
-  },
-  {
-    id: 'clx3',
-    orderNumber: 'AP-2025-001232',
-    status: 'IN_OVEN',
-    orderType: 'DELIVERY',
-    createdAt: new Date(Date.now() - 15 * 60000).toISOString(),
-    customerFirstName: 'Thomas',
-    customerLastName: 'Hofmann',
-    customerPhone: '0152 11223344',
-    deliveryAddress: 'Bahnhofstraße 15, 42781 Haan',
-    items: [
-      { name: 'Pizza Quattro Formaggi', size: 'Normal (32cm)', quantity: 2, totalPrice: 23.0 },
-      { name: 'Insalata Mista', size: null, quantity: 1, totalPrice: 6.5 },
-    ],
-    total: 32.0,
-    orderNotes: 'Ohne Zwiebeln bei der Pizza',
-  },
-];
+interface OrderItem {
+  name: string;
+  size: string | null;
+  quantity: number;
+  totalPrice: number;
+  addOns: unknown;
+  notes: string | null;
+}
+
+interface Order {
+  id: string;
+  orderNumber: string;
+  status: string;
+  orderType: 'DELIVERY' | 'PICKUP';
+  createdAt: string;
+  customerFirstName: string;
+  customerLastName: string;
+  customerPhone: string;
+  customerEmail: string;
+  deliveryAddress: string | null;
+  deliveryInstructions: string | null;
+  items: OrderItem[];
+  subtotal: number;
+  deliveryFee: number;
+  tip: number;
+  discount: number;
+  total: number;
+  orderNotes: string | null;
+  paymentStatus: string;
+  paymentMethod: string | null;
+}
 
 const statusConfig: Record<
   string,
@@ -125,33 +104,95 @@ const statusConfig: Record<
     color: 'bg-gray-100 text-gray-800',
     icon: CheckCircle,
   },
+  CANCELLED: {
+    label: 'Storniert',
+    color: 'bg-red-100 text-red-800',
+    icon: Clock,
+  },
 };
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState(mockOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('active');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch orders from API
+  const fetchOrders = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/admin/orders?filter=${filter}`);
+      if (!response.ok) throw new Error('Fehler beim Laden');
+      const data = await response.json();
+      setOrders(data.orders || []);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, [filter]);
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(fetchOrders, 30000);
+    return () => clearInterval(interval);
+  }, [filter]);
 
   const filteredOrders = orders.filter((order) => {
-    if (filter === 'active') {
-      return !['DELIVERED', 'CANCELLED'].includes(order.status);
-    }
-    if (filter === 'completed') {
-      return order.status === 'DELIVERED';
-    }
-    return true;
+    if (searchQuery === '') return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      order.orderNumber.toLowerCase().includes(query) ||
+      order.customerFirstName.toLowerCase().includes(query) ||
+      order.customerLastName.toLowerCase().includes(query) ||
+      order.customerPhone.includes(query)
+    );
   });
 
-  const updateOrderStatus = (orderId: string, newStatus: string) => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    );
+  const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    try {
+      setIsUpdating(true);
+      const response = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (!response.ok) throw new Error('Fehler beim Aktualisieren');
+
+      // Update local state
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Ein Fehler ist aufgetreten');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const selected = orders.find((o) => o.id === selectedOrder);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-brand-red-600" />
+          <p className="text-muted-foreground">Bestellungen werden geladen...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -160,10 +201,22 @@ export default function OrdersPage() {
         <div>
           <h1 className="text-2xl font-bold">Bestellungen</h1>
           <p className="text-muted-foreground">
-            {filteredOrders.length} aktive Bestellung(en)
+            {filteredOrders.length} Bestellung(en)
           </p>
         </div>
+        <Button variant="outline" onClick={fetchOrders} disabled={isLoading}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+          Aktualisieren
+        </Button>
       </div>
+
+      {error && (
+        <Card className="bg-red-50 border-red-200">
+          <CardContent className="p-4 text-red-800">
+            {error}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -202,85 +255,91 @@ export default function OrdersPage() {
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Orders List */}
         <div className="lg:col-span-2 space-y-4">
-          {filteredOrders.map((order) => {
-            const config = statusConfig[order.status];
-            const StatusIcon = config.icon;
-
-            return (
-              <Card
-                key={order.id}
-                className={`cursor-pointer transition-all ${
-                  selectedOrder === order.id
-                    ? 'ring-2 ring-brand-red-600'
-                    : 'hover:shadow-md'
-                }`}
-                onClick={() => setSelectedOrder(order.id)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      {/* Header */}
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="font-mono font-semibold">
-                          {order.orderNumber}
-                        </span>
-                        <Badge className={config.color}>
-                          <StatusIcon className="h-3 w-3 mr-1" />
-                          {config.label}
-                        </Badge>
-                        <Badge variant="outline">
-                          {order.orderType === 'DELIVERY' ? 'Lieferung' : 'Abholung'}
-                        </Badge>
-                      </div>
-
-                      {/* Customer */}
-                      <p className="text-sm">
-                        {order.customerFirstName} {order.customerLastName}
-                      </p>
-
-                      {/* Items preview */}
-                      <p className="text-sm text-muted-foreground truncate">
-                        {order.items.map((i) => `${i.quantity}x ${i.name}`).join(', ')}
-                      </p>
-                    </div>
-
-                    {/* Right side */}
-                    <div className="text-right">
-                      <p className="font-bold text-lg">{formatPrice(order.total)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(order.createdAt).toLocaleTimeString('de-DE', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Quick actions */}
-                  {config.nextStatus && (
-                    <div className="mt-3 pt-3 border-t">
-                      <Button
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          updateOrderStatus(order.id, config.nextStatus!);
-                        }}
-                      >
-                        {config.nextLabel}
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-
-          {filteredOrders.length === 0 && (
+          {filteredOrders.length === 0 ? (
             <Card>
               <CardContent className="p-8 text-center text-muted-foreground">
-                Keine Bestellungen gefunden.
+                {orders.length === 0
+                  ? 'Noch keine Bestellungen vorhanden.'
+                  : 'Keine Bestellungen gefunden.'}
               </CardContent>
             </Card>
+          ) : (
+            filteredOrders.map((order) => {
+              const config = statusConfig[order.status] || statusConfig.PENDING;
+              const StatusIcon = config.icon;
+
+              return (
+                <Card
+                  key={order.id}
+                  className={`cursor-pointer transition-all ${
+                    selectedOrder === order.id
+                      ? 'ring-2 ring-brand-red-600'
+                      : 'hover:shadow-md'
+                  }`}
+                  onClick={() => setSelectedOrder(order.id)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1 min-w-0">
+                        {/* Header */}
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="font-mono font-semibold">
+                            {order.orderNumber}
+                          </span>
+                          <Badge className={config.color}>
+                            <StatusIcon className="h-3 w-3 mr-1" />
+                            {config.label}
+                          </Badge>
+                          <Badge variant="outline">
+                            {order.orderType === 'DELIVERY' ? 'Lieferung' : 'Abholung'}
+                          </Badge>
+                        </div>
+
+                        {/* Customer */}
+                        <p className="text-sm">
+                          {order.customerFirstName} {order.customerLastName}
+                        </p>
+
+                        {/* Items preview */}
+                        <p className="text-sm text-muted-foreground truncate">
+                          {order.items.map((i) => `${i.quantity}x ${i.name}`).join(', ')}
+                        </p>
+                      </div>
+
+                      {/* Right side */}
+                      <div className="text-right">
+                        <p className="font-bold text-lg">{formatPrice(order.total)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(order.createdAt).toLocaleTimeString('de-DE', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Quick actions */}
+                    {config.nextStatus && (
+                      <div className="mt-3 pt-3 border-t">
+                        <Button
+                          size="sm"
+                          disabled={isUpdating}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            updateOrderStatus(order.id, config.nextStatus!);
+                          }}
+                        >
+                          {isUpdating ? (
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          ) : null}
+                          {config.nextLabel}
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
         </div>
 
@@ -300,8 +359,8 @@ export default function OrdersPage() {
               <CardContent className="space-y-4">
                 {/* Status */}
                 <div>
-                  <Badge className={statusConfig[selected.status].color}>
-                    {statusConfig[selected.status].label}
+                  <Badge className={statusConfig[selected.status]?.color || 'bg-gray-100'}>
+                    {statusConfig[selected.status]?.label || selected.status}
                   </Badge>
                 </div>
 
@@ -328,6 +387,11 @@ export default function OrdersPage() {
                       <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground" />
                       <span>{selected.deliveryAddress}</span>
                     </div>
+                    {selected.deliveryInstructions && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {selected.deliveryInstructions}
+                      </p>
+                    )}
                   </div>
                 )}
 
@@ -364,16 +428,42 @@ export default function OrdersPage() {
 
                 <Separator />
 
-                {/* Total */}
+                {/* Totals */}
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span>Zwischensumme</span>
+                    <span>{formatPrice(selected.subtotal)}</span>
+                  </div>
+                  {selected.deliveryFee > 0 && (
+                    <div className="flex justify-between">
+                      <span>Liefergebühr</span>
+                      <span>{formatPrice(selected.deliveryFee)}</span>
+                    </div>
+                  )}
+                  {selected.tip > 0 && (
+                    <div className="flex justify-between">
+                      <span>Trinkgeld</span>
+                      <span>{formatPrice(selected.tip)}</span>
+                    </div>
+                  )}
+                  {selected.discount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Rabatt</span>
+                      <span>-{formatPrice(selected.discount)}</span>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-between font-bold">
                   <span>Gesamt</span>
                   <span>{formatPrice(selected.total)}</span>
                 </div>
 
                 {/* Actions */}
-                {statusConfig[selected.status].nextStatus && (
+                {statusConfig[selected.status]?.nextStatus && (
                   <Button
                     className="w-full"
+                    disabled={isUpdating}
                     onClick={() =>
                       updateOrderStatus(
                         selected.id,
@@ -381,6 +471,9 @@ export default function OrdersPage() {
                       )
                     }
                   >
+                    {isUpdating ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : null}
                     {statusConfig[selected.status].nextLabel}
                   </Button>
                 )}
