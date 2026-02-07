@@ -36,6 +36,18 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Arlecchino Plus' }],
   creator: 'Arlecchino Plus',
+  icons: {
+    icon: [
+      { url: '/images/favicon/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/images/favicon/favicon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/images/favicon/favicon.ico',
+    apple: '/images/favicon/apple-touch-icon.png',
+  },
+  manifest: '/images/favicon/site.webmanifest',
+  appleWebApp: {
+    title: 'Arlecchino Plus',
+  },
   openGraph: {
     type: 'website',
     locale: 'de_DE',
