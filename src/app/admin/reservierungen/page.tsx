@@ -384,18 +384,34 @@ export default function ReservationsPage() {
             </Card>
           ) : (
             filteredReservations
-              .sort((a, b) => a.time.localeCompare(b.time))
+              .sort((a, b) => {
+                // Sort by date first, then by time
+                const dateCompare = a.date.localeCompare(b.date);
+                if (dateCompare !== 0) return dateCompare;
+                return a.time.localeCompare(b.time);
+              })
               .map((reservation) => {
                 const config = statusConfig[reservation.status] || statusConfig.PENDING;
                 const StatusIcon = config.icon;
+                const formattedDate = new Date(reservation.date).toLocaleDateString('de-DE', {
+                  weekday: 'short',
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                });
                 return (
                   <Card key={reservation.id}>
                     <CardContent className="p-4">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                        {/* Time */}
-                        <div className="flex items-center gap-3 sm:w-24">
+                        {/* Date & Time */}
+                        <div className="flex items-center gap-3 sm:w-40">
                           <Clock className="h-5 w-5 text-muted-foreground" />
-                          <span className="text-xl font-bold">{reservation.time}</span>
+                          <div>
+                            {viewMode === 'all' && (
+                              <p className="text-sm font-medium text-muted-foreground">{formattedDate}</p>
+                            )}
+                            <span className="text-xl font-bold">{reservation.time}</span>
+                          </div>
                         </div>
 
                         {/* Guest Info */}
