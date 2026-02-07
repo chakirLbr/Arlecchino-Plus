@@ -13,13 +13,13 @@ import {
   Menu,
   X,
   LogOut,
-  Bell,
   ChefHat,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
+import { NotificationDropdown } from '@/components/admin/notification-dropdown';
 
 const navigation = [
   {
@@ -170,10 +170,7 @@ export default function AdminLayout({
             <ThemeToggle />
 
             {/* Notifications */}
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-brand-red-600" />
-            </Button>
+            <NotificationDropdown />
 
             {/* User menu */}
             <div className="flex items-center gap-3 pl-3 border-l">
