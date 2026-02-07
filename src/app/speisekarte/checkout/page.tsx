@@ -146,7 +146,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="pt-20 min-h-screen bg-brand-cream-50">
+    <div className="pt-20 min-h-screen bg-muted">
       <div className="container-wide py-8">
         {/* Back Button */}
         {currentStep < 4 && (
@@ -313,8 +313,8 @@ export default function CheckoutPage() {
                       onClick={() => setOrderType('DELIVERY')}
                       className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-colors ${
                         orderType === 'DELIVERY'
-                          ? 'border-brand-red-600 bg-primary/10'
-                          : 'border-muted hover:border-muted-foreground/30'
+                          ? 'border-brand-red-600 bg-brand-red-600/10 text-brand-red-600'
+                          : 'border-border hover:border-muted-foreground/50'
                       }`}
                     >
                       <Truck className="h-5 w-5" />
@@ -324,8 +324,8 @@ export default function CheckoutPage() {
                       onClick={() => setOrderType('PICKUP')}
                       className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-colors ${
                         orderType === 'PICKUP'
-                          ? 'border-brand-red-600 bg-primary/10'
-                          : 'border-muted hover:border-muted-foreground/30'
+                          ? 'border-brand-red-600 bg-brand-red-600/10 text-brand-red-600'
+                          : 'border-border hover:border-muted-foreground/50'
                       }`}
                     >
                       <Store className="h-5 w-5" />
@@ -529,8 +529,8 @@ export default function CheckoutPage() {
                         key={method.id}
                         className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-colors ${
                           formData.paymentMethod === method.id
-                            ? 'border-brand-red-600 bg-brand-red-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            ? 'border-brand-red-600 bg-brand-red-600/10'
+                            : 'border-border hover:border-muted-foreground/50'
                         }`}
                       >
                         <input
