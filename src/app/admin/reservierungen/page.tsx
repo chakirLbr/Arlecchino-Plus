@@ -67,19 +67,20 @@ const statusConfig: Record<string, { label: string; color: string; icon: typeof 
 
 export default function ReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState<string | null>(null); // null = show all
   const [filter, setFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'all' | 'date'>('all'); // 'all' or 'date'
 
   // Fetch reservations from API
   const fetchReservations = async () => {
     try {
       setIsLoading(true);
       const params = new URLSearchParams();
-      if (selectedDate) params.set('date', selectedDate);
+      if (viewMode === 'date' && selectedDate) params.set('date', selectedDate);
       if (filter !== 'all') params.set('status', filter);
 
       const response = await fetch(`/api/admin/reservations?${params.toString()}`);
@@ -96,7 +97,7 @@ export default function ReservationsPage() {
 
   useEffect(() => {
     fetchReservations();
-  }, [selectedDate, filter]);
+  }, [selectedDate, filter, viewMode]);
 
   // Get all reservations for the week view (without date filter)
   const [allReservations, setAllReservations] = useState<Reservation[]>([]);
@@ -136,7 +137,7 @@ export default function ReservationsPage() {
   // Generate week dates
   const getWeekDates = () => {
     const dates = [];
-    const current = new Date(selectedDate);
+    const current = selectedDate ? new Date(selectedDate) : new Date();
     const dayOfWeek = current.getDay();
     const monday = new Date(current);
     monday.setDate(current.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
@@ -182,7 +183,7 @@ export default function ReservationsPage() {
   };
 
   const navigateWeek = (direction: 'prev' | 'next') => {
-    const current = new Date(selectedDate);
+    const current = selectedDate ? new Date(selectedDate) : new Date();
     current.setDate(current.getDate() + (direction === 'next' ? 7 : -7));
     setSelectedDate(current.toISOString().split('T')[0]);
   };
@@ -215,6 +216,25 @@ export default function ReservationsPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* View Mode Toggle */}
+      <div className="flex gap-2">
+        <Button
+          variant={viewMode === 'all' ? 'default' : 'outline'}
+          onClick={() => setViewMode('all')}
+        >
+          Alle Reservierungen
+        </Button>
+        <Button
+          variant={viewMode === 'date' ? 'default' : 'outline'}
+          onClick={() => {
+            setViewMode('date');
+            if (!selectedDate) setSelectedDate(new Date().toISOString().split('T')[0]);
+          }}
+        >
+          Nach Datum
+        </Button>
+      </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 sm:grid-cols-3">
@@ -253,7 +273,8 @@ export default function ReservationsPage() {
         </Card>
       </div>
 
-      {/* Week Calendar */}
+      {/* Week Calendar - only show in date view */}
+      {viewMode === 'date' && selectedDate && (
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-4">
@@ -305,6 +326,7 @@ export default function ReservationsPage() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Filters & Search */}
       <div className="flex flex-col sm:flex-row gap-4">

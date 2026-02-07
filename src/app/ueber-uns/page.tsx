@@ -323,7 +323,7 @@ export default function AboutPage() {
               <Button
                 size="xl"
                 variant="outline"
-                className="w-full sm:w-auto border-white text-white hover:bg-white/10"
+                className="w-full sm:w-auto border-white bg-transparent text-white hover:bg-white hover:text-brand-red-600"
               >
                 Tisch reservieren
               </Button>
