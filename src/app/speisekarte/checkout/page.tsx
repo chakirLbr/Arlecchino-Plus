@@ -74,20 +74,57 @@ export default function CheckoutPage() {
   const handleSubmitOrder = async () => {
     setIsProcessing(true);
 
-    // Simulate order processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          orderType,
+          street: formData.street,
+          postalCode: formData.postalCode,
+          city: formData.city,
+          deliveryNotes: formData.deliveryNotes,
+          deliveryTime: formData.deliveryTime,
+          scheduledTime: formData.scheduledTime,
+          paymentMethod: formData.paymentMethod,
+          items: items.map((item) => ({
+            menuItemId: item.menuItemId,
+            name: item.name,
+            quantity: item.quantity,
+            size: item.size,
+            sizePrice: item.sizePrice,
+            unitPrice: item.unitPrice,
+            addOns: item.addOns,
+            notes: item.notes,
+          })),
+          subtotal: getSubtotal(),
+          deliveryFee: orderType === 'DELIVERY' ? deliveryFee : 0,
+          tip: formData.tip,
+          discount: 0,
+          total: getTotal() + formData.tip,
+          orderNotes: formData.orderNotes,
+          couponCode: formData.couponCode,
+        }),
+      });
 
-    // Generate order number
-    const newOrderNumber = `AP-${new Date().getFullYear()}-${Math.floor(
-      Math.random() * 1000000
-    )
-      .toString()
-      .padStart(6, '0')}`;
+      const data = await response.json();
 
-    setOrderNumber(newOrderNumber);
-    setIsProcessing(false);
-    setCurrentStep(4);
-    clearCart();
+      if (!response.ok) {
+        throw new Error(data.error || 'Fehler beim Erstellen der Bestellung');
+      }
+
+      setOrderNumber(data.orderNumber);
+      setCurrentStep(4);
+      clearCart();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   // Redirect if cart is empty (except on confirmation step)

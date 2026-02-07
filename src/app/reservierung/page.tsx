@@ -43,17 +43,35 @@ export default function ReservationPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const response = await fetch('/api/reservations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: formData.date,
+          time: formData.time,
+          partySize: formData.guests,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          specialRequests: formData.specialRequests,
+        }),
+      });
 
-    // Generate reservation number
-    const resNumber = `AR-${new Date().getFullYear()}-${Math.floor(Math.random() * 1000000)
-      .toString()
-      .padStart(6, '0')}`;
-    setReservationNumber(resNumber);
+      const data = await response.json();
 
-    setIsSubmitting(false);
-    setStep('success');
+      if (!response.ok) {
+        throw new Error(data.error || 'Fehler beim Erstellen der Reservierung');
+      }
+
+      setReservationNumber(data.reservationNumber);
+      setStep('success');
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'Ein Fehler ist aufgetreten');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleGuestChange = (delta: number) => {
