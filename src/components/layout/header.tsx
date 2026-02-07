@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Menu, X, Phone } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -47,6 +48,13 @@ export function Header() {
             href="/"
             className="flex items-center space-x-2"
           >
+            <Image
+              src="/images/favicon/favicon-96x96.png"
+              alt="Arlecchino Plus"
+              width={32}
+              height={32}
+              className="h-8 w-8 lg:h-10 lg:w-10"
+            />
             <span className="font-heading text-xl font-bold text-brand-red-600 lg:text-2xl">
               Arlecchino<span className="text-brand-olive-500">+</span>
             </span>
