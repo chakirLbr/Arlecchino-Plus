@@ -2,14 +2,18 @@
 
 Place your MP3 notification sound files in this folder.
 
-## Required Files
+## Sound Files
 
-| Filename | Description |
-|----------|-------------|
-| `default.mp3` | Standard notification sound |
-| `urgent.mp3` | Urgent/fast notification |
-| `gentle.mp3` | Soft/gentle notification |
-| `alarm.mp3` | Loud alarm notification |
+| Filename | Display Name |
+|----------|--------------|
+| `universfield-new-notification-033-480571.mp3` | Benachrichtigung 1 |
+| `universfield-new-notification-029-480565.mp3` | Benachrichtigung 2 |
+| `universfield-new-notification-031-480569.mp3` | Benachrichtigung 3 |
+| `universfield-new-notification-030-480567.mp3` | Benachrichtigung 4 |
+| `alex_jauk-bell-ring-199839.mp3` | Glocke |
+| `freesounds123-bell-sound-370341.mp3` | Glocke Lang |
+| `soundreality-bell-fx-410608.mp3` | Glocke FX |
+| `waltermidnight-vintage-doorbell-ring-sound-effect-325247.mp3` | Türklingel Vintage |
 
 ## Usage
 

@@ -6,7 +6,7 @@ const defaultSettings = {
   acceptingOrders: true,
   ordersPausedMessage: 'Wir nehmen momentan keine Bestellungen an. Bitte versuchen Sie es später erneut.',
   notificationVolume: 100,
-  notificationSound: 'default',
+  notificationSound: 'universfield-new-notification-033-480571',
   // Restaurant information
   restaurantName: 'Arlecchino Plus',
   restaurantStreet: 'Kölner Str. 1',

@@ -51,64 +51,27 @@ interface AdminProfile {
 }
 
 const notificationSounds = [
-  { id: 'default', name: 'Standard', frequencies: [1200, 1200, 1500] },
-  { id: 'urgent', name: 'Dringend', frequencies: [1500, 1500, 1800] },
-  { id: 'gentle', name: 'Sanft', frequencies: [800, 900, 1000] },
-  { id: 'alarm', name: 'Alarm', frequencies: [1800, 1800, 2000] },
+  { id: 'universfield-new-notification-033-480571', name: 'Benachrichtigung 1' },
+  { id: 'universfield-new-notification-029-480565', name: 'Benachrichtigung 2' },
+  { id: 'universfield-new-notification-031-480569', name: 'Benachrichtigung 3' },
+  { id: 'universfield-new-notification-030-480567', name: 'Benachrichtigung 4' },
+  { id: 'alex_jauk-bell-ring-199839', name: 'Glocke' },
+  { id: 'freesounds123-bell-sound-370341', name: 'Glocke Lang' },
+  { id: 'soundreality-bell-fx-410608', name: 'Glocke FX' },
+  { id: 'waltermidnight-vintage-doorbell-ring-sound-effect-325247', name: 'Türklingel Vintage' },
 ];
 
-// Play notification sound with custom settings (MP3 or fallback)
+// Play notification sound (MP3)
 function playTestSound(soundId: string, volume: number) {
   try {
     const volumeLevel = volume / 100;
-
-    // Try to play MP3 file first
     const audio = new Audio(`/audio/notifications/${soundId}.mp3`);
     audio.volume = volumeLevel;
-
-    audio.play().catch(() => {
-      // Fallback to Web Audio API if MP3 fails
-      playFallbackTestSound(soundId, volumeLevel);
+    audio.play().catch((error) => {
+      console.log('Could not play sound:', error);
     });
   } catch (error) {
     console.log('Could not play sound:', error);
-  }
-}
-
-// Fallback sound using Web Audio API
-function playFallbackTestSound(soundId: string, volumeLevel: number) {
-  try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const sound = notificationSounds.find((s) => s.id === soundId) || notificationSounds[0];
-
-    const playTone = (frequency: number, startTime: number, duration: number) => {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.frequency.value = frequency;
-      oscillator.type = soundId === 'gentle' ? 'sine' : 'square';
-
-      gainNode.gain.setValueAtTime(volumeLevel, startTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
-
-      oscillator.start(startTime);
-      oscillator.stop(startTime + duration);
-    };
-
-    const now = audioContext.currentTime;
-    const [f1, f2, f3] = sound.frequencies;
-
-    playTone(f1, now, 0.15);
-    playTone(f2, now + 0.2, 0.15);
-    playTone(f3, now + 0.4, 0.25);
-    playTone(f1, now + 0.8, 0.15);
-    playTone(f2, now + 1.0, 0.15);
-    playTone(f3, now + 1.2, 0.25);
-  } catch (error) {
-    console.log('Fallback sound failed:', error);
   }
 }
 
@@ -117,7 +80,7 @@ export default function EinstellungenPage() {
     acceptingOrders: true,
     ordersPausedMessage: 'Wir nehmen momentan keine Bestellungen an aufgrund hoher Auslastung. Bitte versuchen Sie es später erneut. Wir entschuldigen uns für die Unannehmlichkeiten.',
     notificationVolume: 100,
-    notificationSound: 'default',
+    notificationSound: 'universfield-new-notification-033-480571',
     // Restaurant defaults
     restaurantName: 'Arlecchino Plus',
     restaurantStreet: 'Kölner Str. 1',

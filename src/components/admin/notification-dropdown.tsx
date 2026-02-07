@@ -21,12 +21,15 @@ interface Notification {
   link: string;
 }
 
+// Default sound file
+const DEFAULT_SOUND = 'universfield-new-notification-033-480571';
+
 // Play notification sound using MP3 files
 function playNotificationSound() {
   try {
     // Get settings from localStorage
     const volume = parseInt(localStorage.getItem('notification-volume') || '100') / 100;
-    const soundType = localStorage.getItem('notification-sound-type') || 'default';
+    const soundType = localStorage.getItem('notification-sound-type') || DEFAULT_SOUND;
 
     // Create audio element with the selected sound
     const audio = new Audio(`/audio/notifications/${soundType}.mp3`);
@@ -35,58 +38,9 @@ function playNotificationSound() {
     // Play the sound
     audio.play().catch((error) => {
       console.log('Could not play notification sound:', error);
-      // Fallback to Web Audio API if MP3 fails
-      playFallbackSound(volume, soundType);
     });
   } catch (error) {
     console.log('Could not play notification sound:', error);
-  }
-}
-
-// Fallback sound using Web Audio API if MP3 is not available
-function playFallbackSound(volume: number, soundType: string) {
-  try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-
-    // Sound frequencies based on type
-    const soundFrequencies: Record<string, number[]> = {
-      default: [1200, 1200, 1500],
-      urgent: [1500, 1500, 1800],
-      gentle: [800, 900, 1000],
-      alarm: [1800, 1800, 2000],
-    };
-
-    const frequencies = soundFrequencies[soundType] || soundFrequencies.default;
-    const waveType = soundType === 'gentle' ? 'sine' : 'square';
-
-    const playTone = (frequency: number, startTime: number, duration: number, vol: number = 1.0) => {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.frequency.value = frequency;
-      oscillator.type = waveType as OscillatorType;
-
-      gainNode.gain.setValueAtTime(vol * volume, startTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
-
-      oscillator.start(startTime);
-      oscillator.stop(startTime + duration);
-    };
-
-    const now = audioContext.currentTime;
-    const [f1, f2, f3] = frequencies;
-
-    playTone(f1, now, 0.15, 1.0);
-    playTone(f2, now + 0.2, 0.15, 1.0);
-    playTone(f3, now + 0.4, 0.25, 1.0);
-    playTone(f1, now + 0.8, 0.15, 1.0);
-    playTone(f2, now + 1.0, 0.15, 1.0);
-    playTone(f3, now + 1.2, 0.25, 1.0);
-  } catch (error) {
-    console.log('Fallback sound also failed:', error);
   }
 }
 
