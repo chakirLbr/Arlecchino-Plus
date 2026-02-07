@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
-import { Bell, ShoppingBag, CalendarDays, X, Check } from 'lucide-react';
+import { Bell, ShoppingBag, CalendarDays, Check, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Popover,
@@ -21,31 +21,97 @@ interface Notification {
   link: string;
 }
 
+// Play notification sound using Web Audio API
+function playNotificationSound() {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+    // Create a pleasant two-tone notification sound
+    const playTone = (frequency: number, startTime: number, duration: number) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'sine';
+
+      gainNode.gain.setValueAtTime(0.3, startTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    };
+
+    const now = audioContext.currentTime;
+    playTone(880, now, 0.15); // A5
+    playTone(1108.73, now + 0.15, 0.15); // C#6
+    playTone(1318.51, now + 0.3, 0.2); // E6
+
+  } catch (error) {
+    console.log('Could not play notification sound:', error);
+  }
+}
+
 export function NotificationDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const prevUnreadCountRef = useRef<number>(0);
+  const isFirstLoadRef = useRef(true);
 
-  const fetchNotifications = async () => {
+  // Load sound preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('notification-sound');
+    if (saved !== null) {
+      setSoundEnabled(saved === 'true');
+    }
+  }, []);
+
+  // Save sound preference
+  const toggleSound = () => {
+    const newValue = !soundEnabled;
+    setSoundEnabled(newValue);
+    localStorage.setItem('notification-sound', String(newValue));
+
+    // Play test sound when enabling
+    if (newValue) {
+      playNotificationSound();
+    }
+  };
+
+  const fetchNotifications = useCallback(async () => {
     try {
       const response = await fetch('/api/admin/notifications');
       if (response.ok) {
         const data = await response.json();
-        setNotifications(data.notifications || []);
+        const newNotifications = data.notifications || [];
+        const newUnreadCount = newNotifications.filter((n: Notification) => !n.read).length;
+
+        // Play sound if there are new unread notifications (not on first load)
+        if (!isFirstLoadRef.current && soundEnabled && newUnreadCount > prevUnreadCountRef.current) {
+          playNotificationSound();
+        }
+
+        prevUnreadCountRef.current = newUnreadCount;
+        isFirstLoadRef.current = false;
+        setNotifications(newNotifications);
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [soundEnabled]);
 
   useEffect(() => {
     fetchNotifications();
-    // Poll for new notifications every 30 seconds
-    const interval = setInterval(fetchNotifications, 30000);
+    // Poll for new notifications every 15 seconds
+    const interval = setInterval(fetchNotifications, 15000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchNotifications]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
@@ -59,6 +125,7 @@ export function NotificationDropdown() {
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, read: true } : n))
       );
+      prevUnreadCountRef.current = Math.max(0, prevUnreadCountRef.current - 1);
     } catch (error) {
       console.error('Failed to mark notification as read:', error);
     }
@@ -72,6 +139,7 @@ export function NotificationDropdown() {
         body: JSON.stringify({ markAll: true }),
       });
       setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+      prevUnreadCountRef.current = 0;
     } catch (error) {
       console.error('Failed to mark all as read:', error);
     }
@@ -92,9 +160,9 @@ export function NotificationDropdown() {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
+          <Bell className={cn("h-5 w-5", unreadCount > 0 && "animate-pulse")} />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 h-5 w-5 rounded-full bg-brand-red-600 text-white text-xs font-medium flex items-center justify-center">
+            <span className="absolute -top-0.5 -right-0.5 h-5 w-5 rounded-full bg-brand-red-600 text-white text-xs font-medium flex items-center justify-center animate-pulse">
               {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
@@ -104,17 +172,32 @@ export function NotificationDropdown() {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-semibold">Benachrichtigungen</h3>
-          {unreadCount > 0 && (
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
-              size="sm"
-              className="text-xs h-auto py-1"
-              onClick={markAllAsRead}
+              size="icon"
+              className="h-8 w-8"
+              onClick={toggleSound}
+              title={soundEnabled ? 'Ton ausschalten' : 'Ton einschalten'}
             >
-              <Check className="h-3 w-3 mr-1" />
-              Alle gelesen
+              {soundEnabled ? (
+                <Volume2 className="h-4 w-4 text-green-600" />
+              ) : (
+                <VolumeX className="h-4 w-4 text-muted-foreground" />
+              )}
             </Button>
-          )}
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-xs h-auto py-1"
+                onClick={markAllAsRead}
+              >
+                <Check className="h-3 w-3 mr-1" />
+                Alle gelesen
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Notifications list */}
