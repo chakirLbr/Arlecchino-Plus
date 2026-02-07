@@ -21,13 +21,13 @@ interface Notification {
   link: string;
 }
 
-// Play notification sound using Web Audio API
+// Play notification sound using Web Audio API - LOUD for restaurant
 function playNotificationSound() {
   try {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
 
-    // Create a pleasant two-tone notification sound
-    const playTone = (frequency: number, startTime: number, duration: number) => {
+    // Create a loud, attention-grabbing notification sound
+    const playTone = (frequency: number, startTime: number, duration: number, volume: number = 1.0) => {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
 
@@ -35,9 +35,9 @@ function playNotificationSound() {
       gainNode.connect(audioContext.destination);
 
       oscillator.frequency.value = frequency;
-      oscillator.type = 'sine';
+      oscillator.type = 'square'; // Square wave is louder and more noticeable
 
-      gainNode.gain.setValueAtTime(0.3, startTime);
+      gainNode.gain.setValueAtTime(volume, startTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
 
       oscillator.start(startTime);
@@ -45,9 +45,19 @@ function playNotificationSound() {
     };
 
     const now = audioContext.currentTime;
-    playTone(880, now, 0.15); // A5
-    playTone(1108.73, now + 0.15, 0.15); // C#6
-    playTone(1318.51, now + 0.3, 0.2); // E6
+
+    // Play a loud 3-beep pattern (like a restaurant order bell)
+    // First beep
+    playTone(1200, now, 0.15, 1.0);
+    // Second beep
+    playTone(1200, now + 0.2, 0.15, 1.0);
+    // Third beep (higher pitch)
+    playTone(1500, now + 0.4, 0.25, 1.0);
+
+    // Repeat after short pause for extra attention
+    playTone(1200, now + 0.8, 0.15, 1.0);
+    playTone(1200, now + 1.0, 0.15, 1.0);
+    playTone(1500, now + 1.2, 0.25, 1.0);
 
   } catch (error) {
     console.log('Could not play notification sound:', error);
