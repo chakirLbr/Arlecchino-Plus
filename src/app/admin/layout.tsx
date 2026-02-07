@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -22,45 +22,11 @@ import { Badge } from '@/components/ui/badge';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
 import { NotificationDropdown } from '@/components/admin/notification-dropdown';
 
-const navigation = [
-  {
-    name: 'Dashboard',
-    href: '/admin',
-    icon: LayoutDashboard,
-  },
-  {
-    name: 'Bestellungen',
-    href: '/admin/bestellungen',
-    icon: ShoppingBag,
-    badge: 3,
-  },
-  {
-    name: 'Speisekarte',
-    href: '/admin/speisekarte',
-    icon: UtensilsCrossed,
-  },
-  {
-    name: 'Reservierungen',
-    href: '/admin/reservierungen',
-    icon: CalendarDays,
-    badge: 2,
-  },
-  {
-    name: 'Nachrichten',
-    href: '/admin/nachrichten',
-    icon: Mail,
-  },
-  {
-    name: 'Statistiken',
-    href: '/admin/statistiken',
-    icon: BarChart3,
-  },
-  {
-    name: 'Einstellungen',
-    href: '/admin/einstellungen',
-    icon: Settings,
-  },
-];
+interface BadgeCounts {
+  orders: number;
+  reservations: number;
+  messages: number;
+}
 
 export default function AdminLayout({
   children,
@@ -69,6 +35,71 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [badgeCounts, setBadgeCounts] = useState<BadgeCounts>({
+    orders: 0,
+    reservations: 0,
+    messages: 0,
+  });
+
+  // Fetch badge counts
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const response = await fetch('/api/admin/counts');
+        if (response.ok) {
+          const data = await response.json();
+          setBadgeCounts(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch counts:', error);
+      }
+    };
+
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 30000); // Refresh every 30 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const navigation = [
+    {
+      name: 'Dashboard',
+      href: '/admin',
+      icon: LayoutDashboard,
+    },
+    {
+      name: 'Bestellungen',
+      href: '/admin/bestellungen',
+      icon: ShoppingBag,
+      badge: badgeCounts.orders > 0 ? badgeCounts.orders : undefined,
+    },
+    {
+      name: 'Speisekarte',
+      href: '/admin/speisekarte',
+      icon: UtensilsCrossed,
+    },
+    {
+      name: 'Reservierungen',
+      href: '/admin/reservierungen',
+      icon: CalendarDays,
+      badge: badgeCounts.reservations > 0 ? badgeCounts.reservations : undefined,
+    },
+    {
+      name: 'Nachrichten',
+      href: '/admin/nachrichten',
+      icon: Mail,
+      badge: badgeCounts.messages > 0 ? badgeCounts.messages : undefined,
+    },
+    {
+      name: 'Statistiken',
+      href: '/admin/statistiken',
+      icon: BarChart3,
+    },
+    {
+      name: 'Einstellungen',
+      href: '/admin/einstellungen',
+      icon: Settings,
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-muted lg:flex">
