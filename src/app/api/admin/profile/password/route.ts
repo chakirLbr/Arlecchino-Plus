@@ -1,10 +1,20 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
 
 // PATCH - Change admin password
 export async function PATCH(request: Request) {
   try {
+    const session = await getSession();
+
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Nicht authentifiziert' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { currentPassword, newPassword } = body;
 
@@ -23,9 +33,8 @@ export async function PATCH(request: Request) {
       );
     }
 
-    // Get current admin (in production, get from session/JWT)
-    const currentAdmin = await db.adminUser.findFirst({
-      where: { isActive: true },
+    const currentAdmin = await db.adminUser.findUnique({
+      where: { id: session.id },
     });
 
     if (!currentAdmin) {

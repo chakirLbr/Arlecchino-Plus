@@ -1,13 +1,21 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
+import { getSession } from '@/lib/auth';
 
 // GET - Fetch admin profile
-// In a real app, this would use session/JWT to get the current user
 export async function GET() {
   try {
-    // Get the first admin user (or the one from session in production)
-    const admin = await db.adminUser.findFirst({
-      where: { isActive: true },
+    const session = await getSession();
+
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Nicht authentifiziert' },
+        { status: 401 }
+      );
+    }
+
+    const admin = await db.adminUser.findUnique({
+      where: { id: session.id },
       select: {
         id: true,
         email: true,
@@ -37,12 +45,20 @@ export async function GET() {
 // PATCH - Update admin profile
 export async function PATCH(request: Request) {
   try {
+    const session = await getSession();
+
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Nicht authentifiziert' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { firstName, lastName, email } = body;
 
-    // Get current admin (in production, get from session)
-    const currentAdmin = await db.adminUser.findFirst({
-      where: { isActive: true },
+    const currentAdmin = await db.adminUser.findUnique({
+      where: { id: session.id },
     });
 
     if (!currentAdmin) {

@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -16,6 +17,42 @@ async function main() {
   await prisma.deliveryZone.deleteMany();
 
   console.log('🗑️  Cleared existing menu data');
+
+  // ============================================
+  // ADMIN USER
+  // ============================================
+  // Default admin credentials - CHANGE THESE IN PRODUCTION!
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@arlecchino-plus.de';
+  const adminPassword = process.env.ADMIN_PASSWORD || 'Admin123!';
+
+  // Hash the password
+  const salt = await bcrypt.genSalt(12);
+  const passwordHash = await bcrypt.hash(adminPassword, salt);
+
+  // Create or update admin user
+  await prisma.adminUser.upsert({
+    where: { email: adminEmail },
+    update: {
+      passwordHash,
+      firstName: 'Admin',
+      lastName: 'Arlecchino',
+      role: 'OWNER',
+      isActive: true,
+    },
+    create: {
+      email: adminEmail,
+      passwordHash,
+      firstName: 'Admin',
+      lastName: 'Arlecchino',
+      role: 'OWNER',
+      isActive: true,
+    },
+  });
+
+  console.log('✅ Created admin user');
+  console.log(`   Email: ${adminEmail}`);
+  console.log(`   Password: ${adminPassword}`);
+  console.log('   ⚠️  CHANGE THE PASSWORD AFTER FIRST LOGIN!');
 
   // ============================================
   // CATEGORIES

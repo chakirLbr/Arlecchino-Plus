@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard,
   ShoppingBag,
@@ -28,18 +28,47 @@ interface BadgeCounts {
   messages: number;
 }
 
+interface AdminUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+}
+
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [user, setUser] = useState<AdminUser | null>(null);
   const [badgeCounts, setBadgeCounts] = useState<BadgeCounts>({
     orders: 0,
     reservations: 0,
     messages: 0,
   });
+
+  // Fetch user session
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const response = await fetch('/api/auth/session');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.authenticated) {
+            setUser(data.user);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch session:', error);
+      }
+    };
+
+    fetchSession();
+  }, []);
 
   // Fetch badge counts
   useEffect(() => {
@@ -59,6 +88,17 @@ export default function AdminLayout({
     const interval = setInterval(fetchCounts, 30000); // Refresh every 30 seconds
     return () => clearInterval(interval);
   }, []);
+
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/admin/login');
+      router.refresh();
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
 
   const navigation = [
     {
@@ -212,12 +252,19 @@ export default function AdminLayout({
             {/* User menu */}
             <div className="flex items-center gap-3 pl-3 border-l">
               <div className="hidden sm:block text-right">
-                <p className="text-sm font-medium">Admin</p>
+                <p className="text-sm font-medium">
+                  {user ? `${user.firstName} ${user.lastName}` : 'Admin'}
+                </p>
                 <p className="text-xs text-muted-foreground">
-                  admin@arlecchino.de
+                  {user?.email || 'admin@arlecchino.de'}
                 </p>
               </div>
-              <Button variant="ghost" size="icon">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                title="Abmelden"
+              >
                 <LogOut className="h-5 w-5" />
               </Button>
             </div>
