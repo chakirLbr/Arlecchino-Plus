@@ -224,7 +224,7 @@ export default function AdminLayout({
       {/* Main content */}
       <div className="flex-1">
         {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 lg:px-6">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b bg-background px-4 lg:px-6 shadow-sm">
           {/* Mobile menu button */}
           <button
             onClick={() => setSidebarOpen(true)}
