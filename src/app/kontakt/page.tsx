@@ -258,16 +258,17 @@ export default function ContactPage() {
             <div className="space-y-8">
               {/* Map */}
               <Card className="overflow-hidden">
-                <div className="aspect-video bg-muted flex items-center justify-center">
-                  <div className="text-center p-8">
-                    <MapPin className="h-12 w-12 mx-auto text-brand-red-200 mb-4" />
-                    <p className="text-muted-foreground text-sm">
-                      [Google Maps Embed]
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Kölner Str. 1, 42781 Haan
-                    </p>
-                  </div>
+                <div className="aspect-video bg-muted">
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2515.8!2d7.0089!3d51.1939!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47b8c9a0c5b5f5f5%3A0x0!2sK%C3%B6lner%20Str.%201%2C%2042781%20Haan%2C%20Germany!5e0!3m2!1sen!2sde!4v1707300000000!5m2!1sen!2sde"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Arlecchino Plus Standort"
+                  />
                 </div>
               </Card>
 
