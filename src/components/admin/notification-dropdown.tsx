@@ -21,14 +21,32 @@ interface Notification {
   link: string;
 }
 
-// Play notification sound using Web Audio API - LOUD for restaurant
+// Play notification sound using MP3 files
 function playNotificationSound() {
   try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-
     // Get settings from localStorage
     const volume = parseInt(localStorage.getItem('notification-volume') || '100') / 100;
     const soundType = localStorage.getItem('notification-sound-type') || 'default';
+
+    // Create audio element with the selected sound
+    const audio = new Audio(`/audio/notifications/${soundType}.mp3`);
+    audio.volume = volume;
+
+    // Play the sound
+    audio.play().catch((error) => {
+      console.log('Could not play notification sound:', error);
+      // Fallback to Web Audio API if MP3 fails
+      playFallbackSound(volume, soundType);
+    });
+  } catch (error) {
+    console.log('Could not play notification sound:', error);
+  }
+}
+
+// Fallback sound using Web Audio API if MP3 is not available
+function playFallbackSound(volume: number, soundType: string) {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
 
     // Sound frequencies based on type
     const soundFrequencies: Record<string, number[]> = {
@@ -41,7 +59,6 @@ function playNotificationSound() {
     const frequencies = soundFrequencies[soundType] || soundFrequencies.default;
     const waveType = soundType === 'gentle' ? 'sine' : 'square';
 
-    // Create a loud, attention-grabbing notification sound
     const playTone = (frequency: number, startTime: number, duration: number, vol: number = 1.0) => {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
@@ -62,21 +79,14 @@ function playNotificationSound() {
     const now = audioContext.currentTime;
     const [f1, f2, f3] = frequencies;
 
-    // Play a loud 3-beep pattern (like a restaurant order bell)
-    // First beep
     playTone(f1, now, 0.15, 1.0);
-    // Second beep
     playTone(f2, now + 0.2, 0.15, 1.0);
-    // Third beep (higher pitch)
     playTone(f3, now + 0.4, 0.25, 1.0);
-
-    // Repeat after short pause for extra attention
     playTone(f1, now + 0.8, 0.15, 1.0);
     playTone(f2, now + 1.0, 0.15, 1.0);
     playTone(f3, now + 1.2, 0.25, 1.0);
-
   } catch (error) {
-    console.log('Could not play notification sound:', error);
+    console.log('Fallback sound also failed:', error);
   }
 }
 

@@ -51,18 +51,35 @@ interface AdminProfile {
 }
 
 const notificationSounds = [
-  { id: 'default', name: 'Standard (3 Töne)', frequencies: [1200, 1200, 1500] },
-  { id: 'urgent', name: 'Dringend (Schnell)', frequencies: [1500, 1500, 1800] },
-  { id: 'gentle', name: 'Sanft (Tief)', frequencies: [800, 900, 1000] },
-  { id: 'alarm', name: 'Alarm (Laut)', frequencies: [1800, 1800, 2000] },
+  { id: 'default', name: 'Standard', frequencies: [1200, 1200, 1500] },
+  { id: 'urgent', name: 'Dringend', frequencies: [1500, 1500, 1800] },
+  { id: 'gentle', name: 'Sanft', frequencies: [800, 900, 1000] },
+  { id: 'alarm', name: 'Alarm', frequencies: [1800, 1800, 2000] },
 ];
 
-// Play notification sound with custom settings
+// Play notification sound with custom settings (MP3 or fallback)
 function playTestSound(soundId: string, volume: number) {
+  try {
+    const volumeLevel = volume / 100;
+
+    // Try to play MP3 file first
+    const audio = new Audio(`/audio/notifications/${soundId}.mp3`);
+    audio.volume = volumeLevel;
+
+    audio.play().catch(() => {
+      // Fallback to Web Audio API if MP3 fails
+      playFallbackTestSound(soundId, volumeLevel);
+    });
+  } catch (error) {
+    console.log('Could not play sound:', error);
+  }
+}
+
+// Fallback sound using Web Audio API
+function playFallbackTestSound(soundId: string, volumeLevel: number) {
   try {
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const sound = notificationSounds.find((s) => s.id === soundId) || notificationSounds[0];
-    const volumeLevel = volume / 100;
 
     const playTone = (frequency: number, startTime: number, duration: number) => {
       const oscillator = audioContext.createOscillator();
@@ -84,18 +101,14 @@ function playTestSound(soundId: string, volume: number) {
     const now = audioContext.currentTime;
     const [f1, f2, f3] = sound.frequencies;
 
-    // First pattern
     playTone(f1, now, 0.15);
     playTone(f2, now + 0.2, 0.15);
     playTone(f3, now + 0.4, 0.25);
-
-    // Repeat
     playTone(f1, now + 0.8, 0.15);
     playTone(f2, now + 1.0, 0.15);
     playTone(f3, now + 1.2, 0.25);
-
   } catch (error) {
-    console.log('Could not play sound:', error);
+    console.log('Fallback sound failed:', error);
   }
 }
 
