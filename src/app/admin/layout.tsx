@@ -14,6 +14,7 @@ import {
   X,
   LogOut,
   ChefHat,
+  Mail,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -43,6 +44,11 @@ const navigation = [
     href: '/admin/reservierungen',
     icon: CalendarDays,
     badge: 2,
+  },
+  {
+    name: 'Nachrichten',
+    href: '/admin/nachrichten',
+    icon: Mail,
   },
   {
     name: 'Statistiken',
