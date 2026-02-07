@@ -130,7 +130,7 @@ export default function CheckoutPage() {
   // Redirect if cart is empty (except on confirmation step)
   if (items.length === 0 && currentStep !== 4) {
     return (
-      <div className="pt-20 min-h-screen bg-brand-cream-50">
+      <div className="pt-20 min-h-screen bg-muted">
         <div className="container-narrow py-16 text-center">
           <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
           <h1 className="text-2xl font-bold mb-2">Ihr Warenkorb ist leer</h1>
@@ -175,7 +175,7 @@ export default function CheckoutPage() {
                     className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
                       currentStep >= step.id
                         ? 'bg-brand-red-600 border-brand-red-600 text-white'
-                        : 'border-gray-300 text-gray-300'
+                        : 'border-muted-foreground/30 text-muted-foreground/30'
                     }`}
                   >
                     {currentStep > step.id ? (
@@ -196,7 +196,7 @@ export default function CheckoutPage() {
                   {index < steps.length - 1 && (
                     <div
                       className={`w-12 sm:w-24 h-0.5 mx-2 sm:mx-4 ${
-                        currentStep > step.id ? 'bg-brand-red-600' : 'bg-gray-200'
+                        currentStep > step.id ? 'bg-brand-red-600' : 'bg-muted-foreground/20'
                       }`}
                     />
                   )}
@@ -219,7 +219,7 @@ export default function CheckoutPage() {
                     {items.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-start gap-4 p-4 bg-brand-cream-50 rounded-lg"
+                        className="flex items-start gap-4 p-4 bg-muted rounded-lg"
                       >
                         <div className="flex-1">
                           <p className="font-medium">
@@ -313,8 +313,8 @@ export default function CheckoutPage() {
                       onClick={() => setOrderType('DELIVERY')}
                       className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-colors ${
                         orderType === 'DELIVERY'
-                          ? 'border-brand-red-600 bg-brand-red-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-brand-red-600 bg-primary/10'
+                          : 'border-muted hover:border-muted-foreground/30'
                       }`}
                     >
                       <Truck className="h-5 w-5" />
@@ -324,8 +324,8 @@ export default function CheckoutPage() {
                       onClick={() => setOrderType('PICKUP')}
                       className={`flex-1 flex items-center justify-center gap-2 p-4 rounded-lg border-2 transition-colors ${
                         orderType === 'PICKUP'
-                          ? 'border-brand-red-600 bg-brand-red-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-brand-red-600 bg-primary/10'
+                          : 'border-muted hover:border-muted-foreground/30'
                       }`}
                     >
                       <Store className="h-5 w-5" />
@@ -450,7 +450,7 @@ export default function CheckoutPage() {
                   {orderType === 'PICKUP' && (
                     <div className="mt-6 pt-6 border-t">
                       <h3 className="font-semibold mb-4">Abholadresse</h3>
-                      <div className="p-4 bg-brand-cream-50 rounded-lg">
+                      <div className="p-4 bg-muted rounded-lg">
                         <p className="font-medium">Arlecchino Plus</p>
                         <p className="text-muted-foreground">
                           Kölner Str. 1, 42781 Haan
@@ -469,7 +469,7 @@ export default function CheckoutPage() {
                       {orderType === 'DELIVERY' ? 'Lieferzeit' : 'Abholzeit'}
                     </h3>
                     <div className="space-y-2">
-                      <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-brand-cream-50">
+                      <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-muted">
                         <input
                           type="radio"
                           name="deliveryTime"
@@ -479,7 +479,7 @@ export default function CheckoutPage() {
                         />
                         <span>So schnell wie möglich (~30-45 Min)</span>
                       </label>
-                      <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-brand-cream-50">
+                      <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-muted">
                         <input
                           type="radio"
                           name="deliveryTime"
@@ -549,7 +549,7 @@ export default function CheckoutPage() {
 
                   {/* Card Form Placeholder */}
                   {formData.paymentMethod === 'card' && (
-                    <div className="mt-6 p-4 bg-brand-cream-50 rounded-lg">
+                    <div className="mt-6 p-4 bg-muted rounded-lg">
                       <p className="text-sm text-muted-foreground text-center">
                         [Stripe Card Element wird hier eingefügt]
                       </p>
@@ -627,7 +627,7 @@ export default function CheckoutPage() {
             {currentStep === 4 && (
               <Card>
                 <CardContent className="p-8 text-center">
-                  <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
+                  <div className="w-20 h-20 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-6">
                     <Check className="h-10 w-10 text-green-600" />
                   </div>
 
@@ -638,7 +638,7 @@ export default function CheckoutPage() {
                     Ihre Bestellung wurde erfolgreich aufgegeben.
                   </p>
 
-                  <div className="bg-brand-cream-50 rounded-lg p-4 mb-6 inline-block">
+                  <div className="bg-muted rounded-lg p-4 mb-6 inline-block">
                     <p className="text-sm text-muted-foreground">Bestellnummer</p>
                     <p className="font-mono text-xl font-bold">{orderNumber}</p>
                   </div>

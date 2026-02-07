@@ -70,7 +70,7 @@ export default function AboutPage() {
   return (
     <div className="pt-20">
       {/* Hero Section */}
-      <section className="relative py-16 lg:py-24 bg-gradient-to-br from-brand-cream-100 to-white overflow-hidden">
+      <section className="relative py-16 lg:py-24 bg-gradient-to-br from-muted to-background overflow-hidden">
         <div className="absolute inset-0 bg-[url('/images/pattern.svg')] opacity-5" />
         <div className="container-wide relative">
           <div className="max-w-3xl">
@@ -91,7 +91,7 @@ export default function AboutPage() {
       </section>
 
       {/* Our Story */}
-      <section className="section bg-white">
+      <section className="section bg-background">
         <div className="container-wide">
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
             <div className="relative aspect-[4/3] bg-gradient-to-br from-brand-cream-100 to-brand-cream-50 rounded-2xl overflow-hidden">
@@ -134,7 +134,7 @@ export default function AboutPage() {
       </section>
 
       {/* Our Values */}
-      <section className="section bg-brand-cream-50">
+      <section className="section bg-muted">
         <div className="container-wide">
           <div className="text-center mb-12">
             <h2 className="font-heading text-3xl font-bold sm:text-4xl">
@@ -148,7 +148,7 @@ export default function AboutPage() {
           <div className="grid gap-8 md:grid-cols-3">
             {values.map((value) => (
               <Card key={value.title} className="text-center p-8">
-                <div className="mx-auto w-16 h-16 rounded-full bg-brand-red-100 flex items-center justify-center mb-6">
+                <div className="mx-auto w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-6">
                   <value.icon className="h-8 w-8 text-brand-red-600" />
                 </div>
                 <h3 className="font-heading text-xl font-semibold mb-3">
@@ -162,7 +162,7 @@ export default function AboutPage() {
       </section>
 
       {/* Chef Section */}
-      <section className="section bg-white">
+      <section className="section bg-background">
         <div className="container-wide">
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
             <div className="order-2 lg:order-1 space-y-6">
@@ -254,7 +254,7 @@ export default function AboutPage() {
       </section>
 
       {/* Press Section */}
-      <section className="section bg-white">
+      <section className="section bg-background">
         <div className="container-wide">
           <div className="text-center mb-12">
             <h2 className="font-heading text-3xl font-bold sm:text-4xl">
@@ -273,7 +273,7 @@ export default function AboutPage() {
                   sizes="(max-width: 1024px) 100vw, 50vw"
                 />
               </div>
-              <Card className="p-8 bg-brand-cream-50 border-none">
+              <Card className="p-8 bg-muted border-none">
                 <blockquote className="text-xl italic text-muted-foreground mb-6">
                   "Hier gibt es die zweitbeste Pizza Deutschlands – und das
                   mitten in Haan. Tonino Pisano hat bei der Deutschen Meisterschaft

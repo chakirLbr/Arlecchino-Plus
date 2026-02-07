@@ -202,7 +202,7 @@ export default function HomePage() {
       </section>
 
       {/* Signature Pizzas */}
-      <section className="section bg-white">
+      <section className="section bg-background">
         <div className="container-wide">
           <div className="text-center mb-12">
             <Badge variant="secondary" className="mb-4">
@@ -265,7 +265,7 @@ export default function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section className="section bg-brand-cream-50">
+      <section className="section bg-muted">
         <div className="container-wide">
           <div className="text-center mb-12">
             <h2 className="font-heading text-3xl font-bold sm:text-4xl">
@@ -301,7 +301,7 @@ export default function HomePage() {
               },
             ].map((item) => (
               <div key={item.step} className="text-center">
-                <div className="relative mx-auto w-20 h-20 rounded-full bg-white shadow-lg flex items-center justify-center text-4xl mb-6">
+                <div className="relative mx-auto w-20 h-20 rounded-full bg-card shadow-lg flex items-center justify-center text-4xl mb-6">
                   {item.icon}
                   <span className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-brand-red-600 text-white text-sm font-bold flex items-center justify-center">
                     {item.step}
@@ -318,7 +318,7 @@ export default function HomePage() {
       </section>
 
       {/* Reviews Teaser */}
-      <section className="section bg-white">
+      <section className="section bg-background">
         <div className="container-wide">
           <div className="text-center mb-12">
             <h2 className="font-heading text-3xl font-bold sm:text-4xl">
@@ -399,11 +399,11 @@ export default function HomePage() {
       </section>
 
       {/* Contact Quick Info */}
-      <section className="section-sm bg-brand-cream-50">
+      <section className="section-sm bg-muted">
         <div className="container-wide">
           <div className="grid gap-6 md:grid-cols-3">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-red-100">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                 <MapPin className="h-6 w-6 text-brand-red-600" />
               </div>
               <div>
@@ -414,7 +414,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-red-100">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                 <Phone className="h-6 w-6 text-brand-red-600" />
               </div>
               <div>
@@ -428,7 +428,7 @@ export default function HomePage() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-red-100">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                 <Clock className="h-6 w-6 text-brand-red-600" />
               </div>
               <div>

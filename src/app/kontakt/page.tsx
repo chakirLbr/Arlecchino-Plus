@@ -57,7 +57,7 @@ export default function ContactPage() {
   return (
     <div className="pt-20">
       {/* Hero Section */}
-      <section className="py-16 bg-gradient-to-br from-brand-cream-100 to-white">
+      <section className="py-16 bg-gradient-to-br from-muted to-background">
         <div className="container-wide">
           <div className="max-w-2xl">
             <h1 className="font-heading text-4xl font-bold sm:text-5xl mb-4">
@@ -72,7 +72,7 @@ export default function ContactPage() {
       </section>
 
       {/* Main Content */}
-      <section className="section bg-white">
+      <section className="section bg-background">
         <div className="container-wide">
           <div className="grid gap-12 lg:grid-cols-2">
             {/* Contact Info */}
@@ -85,7 +85,7 @@ export default function ContactPage() {
                 >
                   <Card className="h-full transition-all hover:shadow-md hover:border-brand-red-200">
                     <CardContent className="p-6 flex items-start gap-4">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-red-100 group-hover:bg-brand-red-200 transition-colors">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
                         <Phone className="h-6 w-6 text-brand-red-600" />
                       </div>
                       <div>
@@ -109,7 +109,7 @@ export default function ContactPage() {
                 >
                   <Card className="h-full transition-all hover:shadow-md hover:border-green-200">
                     <CardContent className="p-6 flex items-start gap-4">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-100 group-hover:bg-green-200 transition-colors">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
                         <MessageCircle className="h-6 w-6 text-green-600" />
                       </div>
                       <div>
@@ -131,7 +131,7 @@ export default function ContactPage() {
                 >
                   <Card className="h-full transition-all hover:shadow-md hover:border-blue-200">
                     <CardContent className="p-6 flex items-start gap-4">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 group-hover:bg-blue-200 transition-colors">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
                         <Mail className="h-6 w-6 text-blue-600" />
                       </div>
                       <div>
@@ -155,7 +155,7 @@ export default function ContactPage() {
                 >
                   <Card className="h-full transition-all hover:shadow-md hover:border-pink-200">
                     <CardContent className="p-6 flex items-start gap-4">
-                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-pink-100 group-hover:bg-pink-200 transition-colors">
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-pink-500/10 group-hover:bg-pink-500/20 transition-colors">
                         <Instagram className="h-6 w-6 text-pink-600" />
                       </div>
                       <div>
@@ -176,7 +176,7 @@ export default function ContactPage() {
               <Card>
                 <CardContent className="p-6">
                   <div className="flex items-start gap-4 mb-6">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-red-100">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10">
                       <MapPin className="h-6 w-6 text-brand-red-600" />
                     </div>
                     <div>
@@ -197,7 +197,7 @@ export default function ContactPage() {
                   </div>
 
                   <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-olive-100">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-secondary/10">
                       <Car className="h-6 w-6 text-brand-olive-600" />
                     </div>
                     <div>
@@ -224,7 +224,7 @@ export default function ContactPage() {
                         key={item.day}
                         className={`flex justify-between py-2 ${
                           item.isToday
-                            ? 'bg-brand-red-50 -mx-3 px-3 rounded-md'
+                            ? 'bg-primary/10 -mx-3 px-3 rounded-md'
                             : ''
                         }`}
                       >
@@ -258,7 +258,7 @@ export default function ContactPage() {
             <div className="space-y-8">
               {/* Map */}
               <Card className="overflow-hidden">
-                <div className="aspect-video bg-brand-cream-100 flex items-center justify-center">
+                <div className="aspect-video bg-muted flex items-center justify-center">
                   <div className="text-center p-8">
                     <MapPin className="h-12 w-12 mx-auto text-brand-red-200 mb-4" />
                     <p className="text-muted-foreground text-sm">
@@ -280,7 +280,7 @@ export default function ContactPage() {
 
                   {submitStatus === 'success' ? (
                     <div className="text-center py-8">
-                      <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                      <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
                         <Send className="h-8 w-8 text-green-600" />
                       </div>
                       <h4 className="font-semibold text-lg mb-2">
@@ -384,7 +384,7 @@ export default function ContactPage() {
       </section>
 
       {/* Quick Actions */}
-      <section className="section-sm bg-brand-cream-50">
+      <section className="section-sm bg-muted">
         <div className="container-wide">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/speisekarte">

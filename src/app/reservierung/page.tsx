@@ -90,7 +90,7 @@ export default function ReservationPage() {
 
   if (step === 'success') {
     return (
-      <div className="pt-20 min-h-screen bg-gradient-to-br from-brand-cream-100 to-white">
+      <div className="pt-20 min-h-screen bg-gradient-to-br from-muted to-background">
         <div className="container-narrow py-16">
           <Card className="max-w-lg mx-auto">
             <CardContent className="p-8 text-center">
@@ -107,7 +107,7 @@ export default function ReservationPage() {
                 Bestätigung per E-Mail.
               </p>
 
-              <div className="bg-brand-cream-50 rounded-lg p-4 mb-6">
+              <div className="bg-muted rounded-lg p-4 mb-6">
                 <p className="text-sm text-muted-foreground mb-1">
                   Reservierungsnummer
                 </p>
@@ -116,7 +116,7 @@ export default function ReservationPage() {
                 </p>
               </div>
 
-              <div className="text-left bg-white border rounded-lg p-4 mb-6 space-y-3">
+              <div className="text-left bg-card border rounded-lg p-4 mb-6 space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Datum:</span>
                   <span className="font-medium">
@@ -144,11 +144,11 @@ export default function ReservationPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-2 text-left bg-blue-50 rounded-lg p-4 mb-6">
-                <Info className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2 text-left bg-blue-500/10 rounded-lg p-4 mb-6">
+                <Info className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
                 <div className="text-sm">
-                  <p className="font-medium text-blue-900">Wichtiger Hinweis</p>
-                  <p className="text-blue-700">
+                  <p className="font-medium text-blue-600 dark:text-blue-400">Wichtiger Hinweis</p>
+                  <p className="text-blue-600 dark:text-blue-400">
                     Bitte stornieren Sie Ihre Reservierung mindestens 2 Stunden
                     vorher, falls Sie verhindert sind.
                   </p>
@@ -175,7 +175,7 @@ export default function ReservationPage() {
   return (
     <div className="pt-20">
       {/* Hero Section */}
-      <section className="py-16 bg-gradient-to-br from-brand-cream-100 to-white">
+      <section className="py-16 bg-gradient-to-br from-muted to-background">
         <div className="container-wide">
           <div className="max-w-2xl">
             <h1 className="font-heading text-4xl font-bold sm:text-5xl mb-4">
@@ -190,7 +190,7 @@ export default function ReservationPage() {
       </section>
 
       {/* Reservation Form */}
-      <section className="section bg-white">
+      <section className="section bg-background">
         <div className="container-wide">
           <div className="grid gap-12 lg:grid-cols-3">
             {/* Form */}
@@ -478,7 +478,7 @@ export default function ReservationPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-brand-cream-50 border-none">
+              <Card className="bg-muted border-none">
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-2">Größere Gruppen?</h3>
                   <p className="text-sm text-muted-foreground mb-4">

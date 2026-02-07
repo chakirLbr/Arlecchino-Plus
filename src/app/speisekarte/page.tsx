@@ -177,7 +177,7 @@ export default function MenuPage() {
 
   if (loading) {
     return (
-      <div className="pt-20 min-h-screen bg-brand-cream-50 flex items-center justify-center">
+      <div className="pt-20 min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-brand-red-600" />
           <p className="mt-4 text-muted-foreground">Speisekarte wird geladen...</p>
@@ -187,19 +187,19 @@ export default function MenuPage() {
   }
 
   return (
-    <div className="pt-20 min-h-screen bg-brand-cream-50">
+    <div className="pt-20 min-h-screen bg-muted">
       {/* Order Type Banner */}
-      <div className="bg-white border-b sticky top-16 z-40">
+      <div className="bg-background border-b sticky top-16 z-40">
         <div className="container-wide py-4">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             {/* Order Type Toggle */}
-            <div className="flex items-center gap-2 bg-brand-cream-100 rounded-full p-1">
+            <div className="flex items-center gap-2 bg-muted rounded-full p-1">
               <button
                 onClick={() => setOrderType('DELIVERY')}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   orderType === 'DELIVERY'
                     ? 'bg-brand-red-600 text-white'
-                    : 'text-foreground hover:bg-white'
+                    : 'text-foreground hover:bg-card'
                 }`}
               >
                 <Truck className="h-4 w-4" />
@@ -210,7 +210,7 @@ export default function MenuPage() {
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   orderType === 'PICKUP'
                     ? 'bg-brand-red-600 text-white'
-                    : 'text-foreground hover:bg-white'
+                    : 'text-foreground hover:bg-card'
                 }`}
               >
                 <Store className="h-4 w-4" />
@@ -238,7 +238,7 @@ export default function MenuPage() {
       </div>
 
       {/* Category Tabs */}
-      <div className="bg-white border-b sticky top-[120px] z-30">
+      <div className="bg-background border-b sticky top-[120px] z-30">
         <div className="container-wide">
           <div className="flex gap-1 overflow-x-auto scrollbar-hide py-3">
             {categories.map((category) => (
@@ -248,7 +248,7 @@ export default function MenuPage() {
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                   activeCategory === category.id
                     ? 'bg-brand-red-600 text-white'
-                    : 'bg-brand-cream-100 text-foreground hover:bg-brand-cream-200'
+                    : 'bg-muted text-foreground hover:bg-muted/80'
                 }`}
               >
                 {category.name}
@@ -364,7 +364,7 @@ export default function MenuPage() {
                         {cartItems.map((item) => (
                           <div
                             key={item.id}
-                            className="flex items-start gap-3 p-2 bg-brand-cream-50 rounded-lg"
+                            className="flex items-start gap-3 p-2 bg-muted rounded-lg"
                           >
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm truncate">
@@ -432,7 +432,7 @@ export default function MenuPage() {
       </div>
 
       {/* Mobile Cart Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t lg:hidden safe-bottom">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t lg:hidden safe-bottom">
         <Sheet open={cartOpen} onOpenChange={setCartOpen}>
           <SheetTrigger asChild>
             <Button className="w-full" size="lg">
@@ -455,7 +455,7 @@ export default function MenuPage() {
                   {cartItems.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-start gap-3 p-3 bg-brand-cream-50 rounded-lg"
+                      className="flex items-start gap-3 p-3 bg-muted rounded-lg"
                     >
                       <div className="flex-1">
                         <p className="font-medium">
@@ -520,11 +520,11 @@ export default function MenuPage() {
             className="absolute inset-0 bg-black/50"
             onClick={() => setSelectedItem(null)}
           />
-          <div className="relative w-full max-w-lg bg-white rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-lg bg-background rounded-t-2xl sm:rounded-2xl max-h-[90vh] overflow-y-auto">
             {/* Close button */}
             <button
               onClick={() => setSelectedItem(null)}
-              className="absolute top-4 right-4 z-10 p-2 bg-white rounded-full shadow-md"
+              className="absolute top-4 right-4 z-10 p-2 bg-card rounded-full shadow-md"
             >
               <X className="h-5 w-5" />
             </button>
@@ -590,8 +590,8 @@ export default function MenuPage() {
                         key={size.id}
                         className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
                           selectedItem.size === size.name
-                            ? 'border-brand-red-600 bg-brand-red-50'
-                            : 'hover:bg-brand-cream-50'
+                            ? 'border-brand-red-600 bg-primary/10'
+                            : 'hover:bg-muted'
                         }`}
                       >
                         <div className="flex items-center gap-3">

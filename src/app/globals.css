@@ -141,15 +141,15 @@
   }
 
   .badge-success {
-    @apply badge bg-green-100 text-green-800;
+    @apply badge bg-green-500/10 text-green-700 dark:text-green-400;
   }
 
   .badge-warning {
-    @apply badge bg-yellow-100 text-yellow-800;
+    @apply badge bg-yellow-500/10 text-yellow-700 dark:text-yellow-400;
   }
 
   .badge-error {
-    @apply badge bg-red-100 text-red-800;
+    @apply badge bg-red-500/10 text-red-700 dark:text-red-400;
   }
 
   /* Price display */
