@@ -260,7 +260,7 @@ export default function ContactPage() {
               <Card className="overflow-hidden">
                 <div className="aspect-video bg-muted">
                   <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2515.8!2d7.0089!3d51.1939!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47b8c9a0c5b5f5f5%3A0x0!2sK%C3%B6lner%20Str.%201%2C%2042781%20Haan%2C%20Germany!5e0!3m2!1sen!2sde!4v1707300000000!5m2!1sen!2sde"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2500.5553367375355!2d7.005773899999999!3d51.190418099999995!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47b8d24d5c344b9d%3A0x5afb1df65d50485!2sArlecchino%20Plus!5e0!3m2!1sen!2sde!4v1770457654562!5m2!1sen!2sde"
                     width="100%"
                     height="100%"
                     style={{ border: 0 }}
