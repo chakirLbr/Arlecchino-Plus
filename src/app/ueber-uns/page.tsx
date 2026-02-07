@@ -96,7 +96,7 @@ export default function AboutPage() {
           <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
             <div className="relative aspect-[4/3] bg-gradient-to-br from-brand-cream-100 to-brand-cream-50 rounded-2xl overflow-hidden">
               <Image
-                src="/images/ueber-uns/unsere_geschichte.jpg"
+                src="/images/ueber-uns/Unsere_Geschichte.jpg"
                 alt="Arlecchino Plus Restaurant"
                 fill
                 className="object-cover"
@@ -194,7 +194,7 @@ export default function AboutPage() {
 
             <div className="order-1 lg:order-2 relative aspect-[3/4] bg-gradient-to-br from-brand-cream-100 to-brand-cream-50 rounded-2xl overflow-hidden">
               <Image
-                src="/images/ueber-uns/tonino_pisano.jpg"
+                src="/images/ueber-uns/Tonino_Pisano.jpg"
                 alt="Tonino Pisano - Pizzaiolo"
                 fill
                 className="object-cover"
@@ -266,7 +266,7 @@ export default function AboutPage() {
             <div className="grid gap-8 lg:grid-cols-2 items-center">
               <div className="relative aspect-[4/3] rounded-2xl overflow-hidden">
                 <Image
-                  src="/images/ueber-uns/medien.jpg"
+                  src="/images/ueber-uns/Medien.jpg"
                   alt="Arlecchino Plus in den Medien"
                   fill
                   className="object-cover"
