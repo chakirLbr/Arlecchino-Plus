@@ -7,6 +7,14 @@ const defaultSettings = {
   ordersPausedMessage: 'Wir nehmen momentan keine Bestellungen an. Bitte versuchen Sie es später erneut.',
   notificationVolume: 100,
   notificationSound: 'default',
+  // Restaurant information
+  restaurantName: 'Arlecchino Plus',
+  restaurantStreet: 'Kölner Str. 1',
+  restaurantPostalCode: '42781',
+  restaurantCity: 'Haan',
+  restaurantPhone: '02129 6663',
+  restaurantEmail: 'info@arlecchino-plus.de',
+  openingHours: 'Mo-Fr: 11:00-22:00, Sa-So: 12:00-23:00',
 };
 
 // GET - Fetch all settings
