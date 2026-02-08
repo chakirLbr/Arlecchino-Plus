@@ -133,9 +133,9 @@ export default function OrderTrackingPage() {
     : null;
 
   return (
-    <div className="pt-20 min-h-screen bg-brand-cream-50">
+    <div className="pt-20 min-h-screen bg-muted/30">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-card border-b">
         <div className="container-wide py-6">
           <Link
             href="/"
@@ -147,7 +147,7 @@ export default function OrderTrackingPage() {
 
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="font-heading text-2xl font-bold">
+              <h1 className="font-heading text-2xl font-bold text-foreground">
                 Bestellung {order.orderNumber}
               </h1>
               <p className="text-muted-foreground mt-1">
@@ -219,8 +219,8 @@ export default function OrderTrackingPage() {
                             isCompleted
                               ? 'bg-brand-red-600 text-white'
                               : isCurrent
-                              ? 'bg-brand-red-600 text-white ring-4 ring-brand-red-100'
-                              : 'bg-white border-2 border-border text-muted-foreground'
+                              ? 'bg-brand-red-600 text-white ring-4 ring-brand-red-100 dark:ring-brand-red-900/50'
+                              : 'bg-muted border-2 border-border text-muted-foreground'
                           }`}
                         >
                           <StatusIcon className="h-4 w-4" />
@@ -394,9 +394,9 @@ export default function OrderTrackingPage() {
             </Card>
 
             {/* Order Again */}
-            <Card className="bg-brand-cream-50 border-none">
+            <Card className="bg-muted/50 border-none">
               <CardContent className="p-6 text-center">
-                <p className="font-medium mb-2">Hat es geschmeckt?</p>
+                <p className="font-medium mb-2 text-foreground">Hat es geschmeckt?</p>
                 <p className="text-sm text-muted-foreground mb-4">
                   Bestellen Sie wieder und genießen Sie unsere Pizza!
                 </p>
