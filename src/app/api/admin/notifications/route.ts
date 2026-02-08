@@ -16,6 +16,12 @@ function timeAgo(date: Date): string {
   return `Vor ${days} Tagen`;
 }
 
+// Check if notification is "new" (less than 30 minutes old)
+function isNewNotification(date: Date): boolean {
+  const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+  return date > thirtyMinutesAgo;
+}
+
 // GET - Fetch notifications (recent orders and reservations)
 export async function GET() {
   try {
@@ -73,7 +79,9 @@ export async function GET() {
       title: `Neue Bestellung ${order.orderNumber}`,
       message: `${order.customerFirstName} ${order.customerLastName} - ${Number(order.total).toFixed(2)} € (${order.orderType === 'DELIVERY' ? 'Lieferung' : 'Abholung'})`,
       time: timeAgo(order.createdAt),
-      read: order.status !== 'PENDING',
+      timestamp: order.createdAt.getTime(),
+      // New orders (< 30 min) are unread
+      read: !isNewNotification(order.createdAt),
       link: `/admin/bestellungen?order=${order.id}`,
     }));
 
@@ -83,19 +91,15 @@ export async function GET() {
       title: `Neue Reservierung ${res.reservationNumber}`,
       message: `${res.guestFirstName} ${res.guestLastName} - ${res.partySize} Personen, ${res.time} Uhr`,
       time: timeAgo(res.createdAt),
-      read: false,
+      timestamp: res.createdAt.getTime(),
+      read: false, // Reservations are unread until confirmed
       link: `/admin/reservierungen?reservation=${res.id}`,
     }));
 
-    // Combine and sort by time (most recent first)
-    const allNotifications = [...orderNotifications, ...reservationNotifications].sort(
-      (a, b) => {
-        // Simple comparison - notifications with "Gerade eben" come first
-        if (a.time === 'Gerade eben') return -1;
-        if (b.time === 'Gerade eben') return 1;
-        return 0;
-      }
-    );
+    // Combine and sort by timestamp (most recent first)
+    const allNotifications = [...orderNotifications, ...reservationNotifications]
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .map(({ timestamp, ...notification }) => notification); // Remove timestamp from response
 
     return NextResponse.json({
       notifications: allNotifications.slice(0, 15),
