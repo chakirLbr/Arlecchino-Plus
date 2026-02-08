@@ -24,6 +24,9 @@ interface Notification {
 // Default sound file
 const DEFAULT_SOUND = 'universfield-new-notification-033-480571';
 
+// Audio instance for reuse
+let audioInstance: HTMLAudioElement | null = null;
+
 // Play notification sound using MP3 files
 function playNotificationSound() {
   try {
@@ -31,16 +34,35 @@ function playNotificationSound() {
     const volume = parseInt(localStorage.getItem('notification-volume') || '100') / 100;
     const soundType = localStorage.getItem('notification-sound-type') || DEFAULT_SOUND;
 
-    // Create audio element with the selected sound
-    const audio = new Audio(`/audio/notifications/${soundType}.mp3`);
-    audio.volume = volume;
+    // Reuse or create audio element
+    if (!audioInstance) {
+      audioInstance = new Audio();
+    }
+
+    audioInstance.src = `/audio/notifications/${soundType}.mp3`;
+    audioInstance.volume = volume;
 
     // Play the sound
-    audio.play().catch((error) => {
-      console.log('Could not play notification sound:', error);
-    });
+    const playPromise = audioInstance.play();
+
+    if (playPromise !== undefined) {
+      playPromise.catch((error) => {
+        console.log('Could not play notification sound (browser autoplay blocked):', error.message);
+      });
+    }
   } catch (error) {
     console.log('Could not play notification sound:', error);
+  }
+}
+
+// Unlock audio on first user interaction
+function unlockAudio() {
+  if (!audioInstance) {
+    audioInstance = new Audio();
+    // Try to play a silent sound to unlock audio
+    audioInstance.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==';
+    audioInstance.volume = 0;
+    audioInstance.play().catch(() => {});
   }
 }
 
@@ -52,12 +74,28 @@ export function NotificationDropdown() {
   const prevUnreadCountRef = useRef<number>(0);
   const isFirstLoadRef = useRef(true);
 
-  // Load sound preference from localStorage
+  // Load sound preference from localStorage and unlock audio
   useEffect(() => {
     const saved = localStorage.getItem('notification-sound');
     if (saved !== null) {
       setSoundEnabled(saved === 'true');
     }
+
+    // Unlock audio on any user interaction
+    const handleInteraction = () => {
+      unlockAudio();
+      // Remove listeners after first interaction
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('keydown', handleInteraction);
+    };
+
+    document.addEventListener('click', handleInteraction);
+    document.addEventListener('keydown', handleInteraction);
+
+    return () => {
+      document.removeEventListener('click', handleInteraction);
+      document.removeEventListener('keydown', handleInteraction);
+    };
   }, []);
 
   // Save sound preference
