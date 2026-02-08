@@ -1,12 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-11-20.acacia',
-});
+// Only initialize Stripe if the key is available
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Stripe is configured
+    if (!stripeSecretKey) {
+      console.error('STRIPE_SECRET_KEY is not configured');
+      return NextResponse.json(
+        { error: 'Zahlungssystem nicht konfiguriert' },
+        { status: 503 }
+      );
+    }
+
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: '2024-11-20.acacia',
+    });
     const body = await request.json();
     const { amount, orderId, customerEmail, customerName } = body;
 
