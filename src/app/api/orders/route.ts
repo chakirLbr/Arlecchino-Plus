@@ -124,8 +124,8 @@ export async function POST(request: NextRequest) {
         discount: validatedData.discount,
         total: validatedData.total,
         paymentMethod: mapPaymentMethod(validatedData.paymentMethod),
-        paymentStatus: 'PAID', // Simulating successful payment
-        status: 'CONFIRMED',
+        paymentStatus: 'PENDING', // Will be updated to PAID after payment success
+        status: 'PENDING', // Will be updated to CONFIRMED after payment success
         orderNotes: validatedData.orderNotes || null,
         couponCode: validatedData.couponCode || null,
         items: {
@@ -148,8 +148,8 @@ export async function POST(request: NextRequest) {
         },
         statusHistory: {
           create: {
-            status: 'CONFIRMED',
-            note: 'Bestellung eingegangen und bezahlt',
+            status: 'PENDING',
+            note: 'Bestellung erstellt, Zahlung ausstehend',
           },
         },
       },

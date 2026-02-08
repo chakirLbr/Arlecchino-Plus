@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
@@ -14,12 +14,47 @@ import {
   Phone,
   MapPin,
   ArrowLeft,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { formatPrice, formatDateTime } from '@/lib/utils';
+
+// Order type definition
+interface OrderData {
+  id: string;
+  orderNumber: string;
+  status: string;
+  orderType: string;
+  createdAt: string;
+  estimatedReadyAt: string | null;
+  customerFirstName: string;
+  customerLastName: string;
+  deliveryAddress: string | null;
+  deliveryCity: string | null;
+  deliveryPostalCode: string | null;
+  items: Array<{
+    id: string;
+    name: string;
+    quantity: number;
+    size: string | null;
+    unitPrice: number;
+    addOns: Array<{ name: string; price: number }>;
+    totalPrice: number;
+  }>;
+  subtotal: number;
+  deliveryFee: number;
+  tip: number;
+  discount: number;
+  total: number;
+  statusHistory: Array<{
+    status: string;
+    createdAt: string;
+  }>;
+}
 
 // Order status steps
 const statusSteps = [
@@ -65,57 +100,88 @@ const statusSteps = [
   },
 ];
 
-// Mock order data - in production this would come from the API
-const mockOrder = {
-  id: 'clx123',
-  orderNumber: 'AP-2025-001234',
-  status: 'PREPARING',
-  orderType: 'DELIVERY',
-  createdAt: new Date().toISOString(),
-  estimatedReadyAt: new Date(Date.now() + 30 * 60000).toISOString(),
-  customerFirstName: 'Max',
-  customerLastName: 'Mustermann',
-  customerEmail: 'max@beispiel.de',
-  customerPhone: '0151 12345678',
-  deliveryAddress: 'Musterstraße 1',
-  deliveryCity: 'Haan',
-  deliveryPostalCode: '42781',
-  items: [
-    {
-      id: '1',
-      name: 'Pizza Margherita',
-      quantity: 1,
-      size: 'Normal (32cm)',
-      unitPrice: 8.5,
-      addOns: [{ name: 'Extra Käse', price: 1.5 }],
-      totalPrice: 10.0,
-    },
-    {
-      id: '2',
-      name: 'Pizza Diavola',
-      quantity: 1,
-      size: 'Groß (40cm)',
-      unitPrice: 10.5,
-      addOns: [],
-      totalPrice: 14.5,
-    },
-  ],
-  subtotal: 24.5,
-  deliveryFee: 2.5,
-  tip: 0,
-  discount: 0,
-  total: 27.0,
-  statusHistory: [
-    { status: 'PENDING', createdAt: new Date(Date.now() - 10 * 60000).toISOString() },
-    { status: 'CONFIRMED', createdAt: new Date(Date.now() - 8 * 60000).toISOString() },
-    { status: 'PREPARING', createdAt: new Date(Date.now() - 3 * 60000).toISOString() },
-  ],
-};
-
 export default function OrderTrackingPage() {
   const params = useParams();
-  const [order, setOrder] = useState(mockOrder);
-  const [isLoading, setIsLoading] = useState(false);
+  const orderNumber = params.orderId as string;
+  const [order, setOrder] = useState<OrderData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch order data
+  const fetchOrder = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/orders/${orderNumber}`);
+      if (!response.ok) {
+        if (response.status === 404) {
+          setError('Bestellung nicht gefunden');
+        } else {
+          setError('Fehler beim Laden der Bestellung');
+        }
+        return;
+      }
+      const data = await response.json();
+      setOrder(data);
+      setError(null);
+    } catch {
+      setError('Fehler beim Laden der Bestellung');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [orderNumber]);
+
+  // Initial fetch and polling for updates
+  useEffect(() => {
+    fetchOrder();
+
+    // Poll for updates every 30 seconds (only if order is not delivered)
+    const interval = setInterval(() => {
+      if (order?.status !== 'DELIVERED') {
+        fetchOrder();
+      }
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [fetchOrder, order?.status]);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="pt-20 min-h-screen bg-muted/30 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-red-600 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Bestellung wird geladen...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || !order) {
+    return (
+      <div className="pt-20 min-h-screen bg-muted/30 flex items-center justify-center">
+        <Card className="max-w-md w-full mx-4">
+          <CardContent className="p-6 text-center">
+            <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h2 className="font-semibold text-lg mb-2">
+              {error || 'Bestellung nicht gefunden'}
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Die Bestellung mit der Nummer &quot;{orderNumber}&quot; konnte nicht gefunden werden.
+            </p>
+            <div className="flex gap-2 justify-center">
+              <Button variant="outline" onClick={fetchOrder}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Erneut versuchen
+              </Button>
+              <Link href="/">
+                <Button>Zur Startseite</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Get current status index
   const currentStatusIndex = statusSteps.findIndex(

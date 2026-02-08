@@ -44,7 +44,10 @@ export async function GET(request: NextRequest) {
     const filter = searchParams.get('filter'); // 'active', 'completed', 'all'
 
     // Build where clause
-    const where: Record<string, unknown> = {};
+    const where: Record<string, unknown> = {
+      // Only show orders with completed payment (not pending)
+      paymentStatus: { not: 'PENDING' },
+    };
 
     if (status) {
       where.status = status;

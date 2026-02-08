@@ -168,19 +168,19 @@ export default function CheckoutPage() {
   };
 
   const handlePaymentSuccess = async (paymentIntentId: string) => {
-    // Update order with payment info
+    // Confirm order payment
     try {
-      await fetch(`/api/orders/${orderId}`, {
-        method: 'PATCH',
+      const response = await fetch(`/api/orders/${orderNumber}/confirm`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          paymentStatus: 'PAID',
-          paymentIntentId,
-          status: 'CONFIRMED',
-        }),
+        body: JSON.stringify({ paymentIntentId }),
       });
+
+      if (!response.ok) {
+        console.error('Failed to confirm order');
+      }
     } catch (error) {
-      console.error('Failed to update order:', error);
+      console.error('Failed to confirm order:', error);
     }
 
     clearCart();
