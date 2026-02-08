@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 // Schema for order items
 const orderItemSchema = z.object({
-  menuItemId: z.string(),
+  menuItemId: z.string().optional(),
   name: z.string(),
   quantity: z.number().min(1),
   size: z.string().nullable().optional(),
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
             const addOnsTotal = item.addOns.reduce((sum, addon) => sum + addon.price, 0);
             const totalPrice = (item.unitPrice + item.sizePrice + addOnsTotal) * item.quantity;
             return {
-              menuItemId: item.menuItemId,
+              menuItemId: item.menuItemId || null,
               name: item.name,
               quantity: item.quantity,
               size: item.size || null,
