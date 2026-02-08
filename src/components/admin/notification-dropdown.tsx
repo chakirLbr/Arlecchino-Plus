@@ -24,42 +24,66 @@ interface Notification {
 // Default sound file
 const DEFAULT_SOUND = 'universfield-new-notification-033-480571';
 
+// Storage key for seen notifications
+const SEEN_NOTIFICATIONS_KEY = 'admin-seen-notifications';
+
+// Get seen notification IDs from localStorage
+function getSeenNotifications(): Set<string> {
+  try {
+    const stored = localStorage.getItem(SEEN_NOTIFICATIONS_KEY);
+    if (stored) {
+      return new Set(JSON.parse(stored));
+    }
+  } catch {}
+  return new Set();
+}
+
+// Save seen notification IDs to localStorage
+function saveSeenNotifications(ids: Set<string>) {
+  try {
+    // Keep only the last 100 IDs to prevent localStorage from growing too large
+    const idsArray = Array.from(ids).slice(-100);
+    localStorage.setItem(SEEN_NOTIFICATIONS_KEY, JSON.stringify(idsArray));
+  } catch {}
+}
+
+// Mark a notification as seen
+function markNotificationSeen(id: string) {
+  const seen = getSeenNotifications();
+  seen.add(id);
+  saveSeenNotifications(seen);
+}
+
+// Mark all notifications as seen
+function markAllNotificationsSeen(ids: string[]) {
+  const seen = getSeenNotifications();
+  ids.forEach((id) => seen.add(id));
+  saveSeenNotifications(seen);
+}
+
 // Audio instance for reuse
 let audioInstance: HTMLAudioElement | null = null;
 
-// Play notification sound using MP3 files
+// Play notification sound
 function playNotificationSound() {
   try {
-    // Get settings from localStorage
     const volume = parseInt(localStorage.getItem('notification-volume') || '100') / 100;
     const soundType = localStorage.getItem('notification-sound-type') || DEFAULT_SOUND;
 
-    // Reuse or create audio element
     if (!audioInstance) {
       audioInstance = new Audio();
     }
 
     audioInstance.src = `/audio/notifications/${soundType}.mp3`;
     audioInstance.volume = volume;
-
-    // Play the sound
-    const playPromise = audioInstance.play();
-
-    if (playPromise !== undefined) {
-      playPromise.catch((error) => {
-        console.log('Could not play notification sound (browser autoplay blocked):', error.message);
-      });
-    }
-  } catch (error) {
-    console.log('Could not play notification sound:', error);
-  }
+    audioInstance.play().catch(() => {});
+  } catch {}
 }
 
 // Unlock audio on first user interaction
 function unlockAudio() {
   if (!audioInstance) {
     audioInstance = new Audio();
-    // Try to play a silent sound to unlock audio
     audioInstance.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==';
     audioInstance.volume = 0;
     audioInstance.play().catch(() => {});
@@ -71,24 +95,24 @@ export function NotificationDropdown() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const prevUnreadCountRef = useRef<number>(0);
+  const [seenIds, setSeenIds] = useState<Set<string>>(new Set());
+  const prevNotificationIdsRef = useRef<Set<string>>(new Set());
   const isFirstLoadRef = useRef(true);
 
-  // Load sound preference from localStorage and unlock audio
+  // Load preferences and seen notifications
   useEffect(() => {
-    const saved = localStorage.getItem('notification-sound');
-    if (saved !== null) {
-      setSoundEnabled(saved === 'true');
+    const savedSound = localStorage.getItem('notification-sound');
+    if (savedSound !== null) {
+      setSoundEnabled(savedSound === 'true');
     }
+    setSeenIds(getSeenNotifications());
 
-    // Unlock audio on any user interaction
+    // Unlock audio on user interaction
     const handleInteraction = () => {
       unlockAudio();
-      // Remove listeners after first interaction
       document.removeEventListener('click', handleInteraction);
       document.removeEventListener('keydown', handleInteraction);
     };
-
     document.addEventListener('click', handleInteraction);
     document.addEventListener('keydown', handleInteraction);
 
@@ -98,16 +122,11 @@ export function NotificationDropdown() {
     };
   }, []);
 
-  // Save sound preference
   const toggleSound = () => {
     const newValue = !soundEnabled;
     setSoundEnabled(newValue);
     localStorage.setItem('notification-sound', String(newValue));
-
-    // Play test sound when enabling
-    if (newValue) {
-      playNotificationSound();
-    }
+    if (newValue) playNotificationSound();
   };
 
   const fetchNotifications = useCallback(async () => {
@@ -115,17 +134,33 @@ export function NotificationDropdown() {
       const response = await fetch('/api/admin/notifications');
       if (response.ok) {
         const data = await response.json();
-        const newNotifications = data.notifications || [];
-        const newUnreadCount = newNotifications.filter((n: Notification) => !n.read).length;
+        const newNotifications: Notification[] = data.notifications || [];
 
-        // Play sound if there are new unread notifications (not on first load)
-        if (!isFirstLoadRef.current && soundEnabled && newUnreadCount > prevUnreadCountRef.current) {
-          playNotificationSound();
+        // Check for truly new notifications (not seen before)
+        const currentIds = new Set(newNotifications.map((n) => n.id));
+        const currentSeenIds = getSeenNotifications();
+
+        if (!isFirstLoadRef.current && soundEnabled) {
+          // Find notifications that are new (not in previous fetch AND not seen)
+          for (const n of newNotifications) {
+            if (!prevNotificationIdsRef.current.has(n.id) && !currentSeenIds.has(n.id)) {
+              playNotificationSound();
+              break; // Play sound only once even if multiple new notifications
+            }
+          }
         }
 
-        prevUnreadCountRef.current = newUnreadCount;
+        prevNotificationIdsRef.current = currentIds;
         isFirstLoadRef.current = false;
-        setNotifications(newNotifications);
+
+        // Mark notifications as read based on seen status
+        const notificationsWithReadStatus = newNotifications.map((n) => ({
+          ...n,
+          read: currentSeenIds.has(n.id),
+        }));
+
+        setNotifications(notificationsWithReadStatus);
+        setSeenIds(currentSeenIds);
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
@@ -136,41 +171,26 @@ export function NotificationDropdown() {
 
   useEffect(() => {
     fetchNotifications();
-    // Poll for new notifications every 15 seconds
     const interval = setInterval(fetchNotifications, 15000);
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  // Calculate unread count based on seen status
+  const unreadCount = notifications.filter((n) => !seenIds.has(n.id)).length;
 
-  const markAsRead = async (id: string) => {
-    try {
-      await fetch('/api/admin/notifications', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
-      );
-      prevUnreadCountRef.current = Math.max(0, prevUnreadCountRef.current - 1);
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
-    }
+  const markAsRead = (id: string) => {
+    markNotificationSeen(id);
+    setSeenIds((prev) => new Set([...prev, id]));
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+    );
   };
 
-  const markAllAsRead = async () => {
-    try {
-      await fetch('/api/admin/notifications', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ markAll: true }),
-      });
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-      prevUnreadCountRef.current = 0;
-    } catch (error) {
-      console.error('Failed to mark all as read:', error);
-    }
+  const markAllAsRead = () => {
+    const allIds = notifications.map((n) => n.id);
+    markAllNotificationsSeen(allIds);
+    setSeenIds(new Set(allIds));
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
   const getIcon = (type: string) => {
@@ -197,7 +217,6 @@ export function NotificationDropdown() {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
-        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="font-semibold">Benachrichtigungen</h3>
           <div className="flex items-center gap-1">
@@ -228,7 +247,6 @@ export function NotificationDropdown() {
           </div>
         </div>
 
-        {/* Notifications list */}
         <div className="max-h-80 overflow-y-auto">
           {loading ? (
             <div className="p-4 text-center text-muted-foreground text-sm">
@@ -247,19 +265,17 @@ export function NotificationDropdown() {
                 key={notification.id}
                 href={notification.link}
                 onClick={() => {
-                  if (!notification.read) {
-                    markAsRead(notification.id);
-                  }
+                  markAsRead(notification.id);
                   setOpen(false);
                 }}
                 className={cn(
                   'flex items-start gap-3 p-4 border-b last:border-b-0 hover:bg-muted transition-colors',
-                  !notification.read && 'bg-primary/5'
+                  !seenIds.has(notification.id) && 'bg-primary/5'
                 )}
               >
                 <div className="mt-0.5">{getIcon(notification.type)}</div>
                 <div className="flex-1 min-w-0">
-                  <p className={cn('text-sm', !notification.read && 'font-medium')}>
+                  <p className={cn('text-sm', !seenIds.has(notification.id) && 'font-medium')}>
                     {notification.title}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
@@ -269,7 +285,7 @@ export function NotificationDropdown() {
                     {notification.time}
                   </p>
                 </div>
-                {!notification.read && (
+                {!seenIds.has(notification.id) && (
                   <div className="h-2 w-2 rounded-full bg-brand-red-600 mt-2" />
                 )}
               </Link>
@@ -277,7 +293,6 @@ export function NotificationDropdown() {
           )}
         </div>
 
-        {/* Footer */}
         {notifications.length > 0 && (
           <div className="p-2 border-t">
             <Link href="/admin/bestellungen" onClick={() => setOpen(false)}>
