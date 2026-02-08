@@ -1,6 +1,8 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MapPin, Phone, Mail, Clock, Instagram } from 'lucide-react';
-import { db } from '@/lib/db';
 
 // Default restaurant info
 const defaultRestaurantInfo = {
@@ -12,39 +14,6 @@ const defaultRestaurantInfo = {
   restaurantEmail: 'info@arlecchino-plus.de',
   openingHours: 'Mo: 17:00-22:00, Di-Fr: 11:00-14:30, 17:00-22:00, Sa-So: 12:00-22:00',
 };
-
-// Fetch restaurant settings from database
-async function getRestaurantInfo() {
-  try {
-    const settings = await db.settings.findMany({
-      where: {
-        key: {
-          in: [
-            'restaurantName',
-            'restaurantStreet',
-            'restaurantPostalCode',
-            'restaurantCity',
-            'restaurantPhone',
-            'restaurantEmail',
-            'openingHours',
-          ],
-        },
-      },
-    });
-
-    const info = { ...defaultRestaurantInfo };
-    settings.forEach((s) => {
-      if (s.key in info) {
-        (info as any)[s.key] = s.value as string;
-      }
-    });
-
-    return info;
-  } catch (error) {
-    console.error('Failed to fetch restaurant info:', error);
-    return defaultRestaurantInfo;
-  }
-}
 
 // Parse opening hours string into structured format
 function parseOpeningHours(hoursString: string) {
@@ -81,11 +50,27 @@ const legalLinks = [
   { name: 'AGB', href: '/agb' },
 ];
 
-export async function Footer() {
+export function Footer() {
+  const [restaurantInfo, setRestaurantInfo] = useState(defaultRestaurantInfo);
   const currentYear = new Date().getFullYear();
-  const restaurantInfo = await getRestaurantInfo();
-  const openingHours = parseOpeningHours(restaurantInfo.openingHours);
 
+  useEffect(() => {
+    async function fetchRestaurantInfo() {
+      try {
+        const response = await fetch('/api/settings/public');
+        if (response.ok) {
+          const data = await response.json();
+          setRestaurantInfo((prev) => ({ ...prev, ...data }));
+        }
+      } catch (error) {
+        // Use defaults on error
+      }
+    }
+
+    fetchRestaurantInfo();
+  }, []);
+
+  const openingHours = parseOpeningHours(restaurantInfo.openingHours);
   const fullAddress = `${restaurantInfo.restaurantStreet}, ${restaurantInfo.restaurantPostalCode} ${restaurantInfo.restaurantCity}`;
   const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(fullAddress)}`;
   const phoneClean = restaurantInfo.restaurantPhone.replace(/\s/g, '');
