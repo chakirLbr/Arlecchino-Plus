@@ -103,8 +103,8 @@ export default function AccountPage() {
   const handleLogout = async () => {
     try {
       await fetch('/api/customer/auth/logout', { method: 'POST' });
-      router.push('/');
-      router.refresh();
+      // Use window.location for full page reload to reset all component states
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
     }
