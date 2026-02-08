@@ -48,7 +48,7 @@ arlecchino-plus.de/
 │ [HERO SECTION - Full width, 70vh]                           │
 │ Background: High-quality pizza/oven image                   │
 │                                                             │
-│ "Steinofenpizza in Haan"                                    │
+│ "Holzofenpizza in Haan"                                    │
 │ "Frisch. Schnell. Ausgezeichnet."                          │
 │                                                             │
 │ [🍕 Jetzt bestellen]  [📅 Tisch reservieren]               │

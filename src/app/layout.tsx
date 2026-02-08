@@ -19,16 +19,16 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
   title: {
-    default: 'Arlecchino Plus | Steinofenpizza in Haan',
+    default: 'Arlecchino Plus | Holzofenpizza in Haan',
     template: '%s | Arlecchino Plus',
   },
   description:
-    'Authentische italienische Steinofenpizza in Haan. Online bestellen, Tisch reservieren oder abholen. Preisgekrönter Pizzaiolo Tonino Pisano.',
+    'Authentische italienische Holzofenpizza in Haan. Online bestellen, Tisch reservieren oder abholen. Preisgekrönter Pizzaiolo Tonino Pisano.',
   keywords: [
     'Pizza',
     'Pizzeria',
     'Haan',
-    'Steinofenpizza',
+    'Holzofenpizza',
     'Italienisch',
     'Lieferung',
     'Restaurant',
@@ -54,23 +54,23 @@ export const metadata: Metadata = {
     alternateLocale: 'en_US',
     url: '/',
     siteName: 'Arlecchino Plus',
-    title: 'Arlecchino Plus | Steinofenpizza in Haan',
+    title: 'Arlecchino Plus | Holzofenpizza in Haan',
     description:
-      'Authentische italienische Steinofenpizza in Haan. Online bestellen oder Tisch reservieren.',
+      'Authentische italienische Holzofenpizza in Haan. Online bestellen oder Tisch reservieren.',
     images: [
       {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Arlecchino Plus - Steinofenpizza',
+        alt: 'Arlecchino Plus - Holzofenpizza',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Arlecchino Plus | Steinofenpizza in Haan',
+    title: 'Arlecchino Plus | Holzofenpizza in Haan',
     description:
-      'Authentische italienische Steinofenpizza in Haan. Online bestellen oder Tisch reservieren.',
+      'Authentische italienische Holzofenpizza in Haan. Online bestellen oder Tisch reservieren.',
     images: ['/og-image.jpg'],
   },
   robots: {

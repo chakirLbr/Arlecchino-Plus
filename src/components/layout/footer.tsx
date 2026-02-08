@@ -92,7 +92,7 @@ export function Footer() {
               </span>
             </Link>
             <p className="text-sm text-gray-400">
-              Authentische Steinofenpizza in {restaurantInfo.restaurantCity}. Frisch zubereitet mit Liebe und Leidenschaft.
+              Authentische Holzofenpizza in {restaurantInfo.restaurantCity}. Frisch zubereitet mit Liebe und Leidenschaft.
             </p>
             <div className="space-y-2">
               <a

@@ -112,7 +112,7 @@ export default function HomePage() {
             {/* Headline */}
             <div className="space-y-4">
               <h1 className="font-heading text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-7xl drop-shadow-lg">
-                Steinofenpizza
+                Holzofenpizza
                 <br />
                 <span className="text-brand-red-400">in Haan</span>
               </h1>
@@ -272,7 +272,7 @@ export default function HomePage() {
               So einfach geht's
             </h2>
             <p className="mt-4 text-muted-foreground">
-              In nur wenigen Schritten zu Ihrer frischen Steinofenpizza
+              In nur wenigen Schritten zu Ihrer frischen Holzofenpizza
             </p>
           </div>
 
@@ -373,7 +373,7 @@ export default function HomePage() {
           </h2>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
             Bestellen Sie jetzt online und genießen Sie unsere preisgekrönte
-            Steinofenpizza in weniger als 45 Minuten.
+            Holzofenpizza in weniger als 45 Minuten.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/speisekarte">

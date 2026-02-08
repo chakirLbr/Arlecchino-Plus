@@ -22,7 +22,7 @@ export const translations = {
     },
     // Hero
     hero: {
-      title: 'Steinofenpizza in Haan',
+      title: 'Holzofenpizza in Haan',
       subtitle: 'Frisch. Schnell. Ausgezeichnet.',
       orderCta: 'Jetzt bestellen',
       reserveCta: 'Tisch reservieren',

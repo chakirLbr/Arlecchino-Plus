@@ -9,7 +9,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'Über uns',
   description:
-    'Lernen Sie Arlecchino Plus kennen - unseren preisgekrönten Pizzaiolo Tonino Pisano und unsere Leidenschaft für authentische italienische Steinofenpizza.',
+    'Lernen Sie Arlecchino Plus kennen - unseren preisgekrönten Pizzaiolo Tonino Pisano und unsere Leidenschaft für authentische italienische Holzofenpizza.',
 };
 
 const awards = [
@@ -84,7 +84,7 @@ export default function AboutPage() {
             </h1>
             <p className="text-xl text-muted-foreground">
               Entdecken Sie die Geschichte hinter Arlecchino Plus und unsere
-              Hingabe für authentische italienische Steinofenpizza.
+              Hingabe für authentische italienische Holzofenpizza.
             </p>
           </div>
         </div>
