@@ -19,15 +19,15 @@ function timeAgo(date: Date): string {
 // GET - Fetch notifications (recent orders and reservations)
 export async function GET() {
   try {
-    // Get recent orders (last 24 hours, status PENDING or CONFIRMED)
+    // Get recent orders (last 24 hours, only PAID orders with status CONFIRMED)
     const recentOrders = await db.order.findMany({
       where: {
         createdAt: {
           gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
         },
-        status: {
-          in: ['PENDING', 'CONFIRMED'],
-        },
+        // Only show orders that have completed payment
+        paymentStatus: 'PAID',
+        status: 'CONFIRMED',
       },
       orderBy: { createdAt: 'desc' },
       take: 10,
@@ -113,11 +113,9 @@ export async function PATCH(request: Request) {
     const { id, markAll } = body;
 
     if (markAll) {
-      // Mark all pending orders as confirmed (acknowledged)
-      await db.order.updateMany({
-        where: { status: 'PENDING' },
-        data: { status: 'CONFIRMED' },
-      });
+      // Mark all confirmed paid orders as acknowledged (don't affect unpaid orders)
+      // Note: We don't change order status here anymore since CONFIRMED orders are already confirmed
+      // This is mainly for reservations now
 
       // Mark all pending reservations as confirmed
       await db.reservation.updateMany({
