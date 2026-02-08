@@ -39,8 +39,8 @@ const statusSteps = [
   {
     id: 'IN_OVEN',
     label: 'Im Ofen',
-    labelActive: 'Im Steinofen',
-    description: 'Ihre Pizza backt gerade im Steinofen',
+    labelActive: 'Im Holzofen',
+    description: 'Ihre Pizza backt gerade im Holzofen',
     icon: Flame,
   },
   {

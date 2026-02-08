@@ -48,9 +48,9 @@ const awards = [
 const values = [
   {
     icon: Flame,
-    title: 'Echter Steinofen',
+    title: 'Echter Holzofen',
     description:
-      'Unsere Pizzen werden bei über 400°C im traditionellen Steinofen gebacken – für den perfekten knusprigen Boden.',
+      'Unsere Pizzen werden bei über 400°C im traditionellen Holzofen gebacken – für den perfekten knusprigen Boden.',
   },
   {
     icon: Clock,
@@ -118,7 +118,7 @@ export default function AboutPage() {
                 </p>
                 <p>
                   Unser Geheimnis? Zeit und Hingabe. Jeder Teig reift mindestens
-                  48 Stunden, bevor er bei über 400°C in unserem Steinofen die
+                  48 Stunden, bevor er bei über 400°C in unserem Holzofen die
                   perfekte Kruste bekommt. Die Zutaten kommen größtenteils direkt
                   aus Italien – von der San-Marzano-Tomate bis zum Büffelmozzarella.
                 </p>
@@ -187,7 +187,7 @@ export default function AboutPage() {
                 <p>
                   "Für mich ist jede Pizza ein kleines Kunstwerk. Der Teig erzählt
                   eine Geschichte – von der Zeit, die er hatte zu reifen, von den
-                  Händen, die ihn geformt haben, und von der Hitze des Steinofens."
+                  Händen, die ihn geformt haben, und von der Hitze des Holzofens."
                 </p>
               </div>
             </div>

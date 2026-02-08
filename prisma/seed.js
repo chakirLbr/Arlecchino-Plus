@@ -25,7 +25,7 @@ async function main() {
         name: 'Pizza',
         nameEn: 'Pizza',
         slug: 'pizza',
-        description: 'Unsere Steinofenpizzen - frisch zubereitet mit italienischem Teig',
+        description: 'Unsere Holzofenpizzen - frisch zubereitet mit italienischem Teig',
         descriptionEn: 'Our stone oven pizzas - freshly prepared with Italian dough',
         sortOrder: 1,
       },

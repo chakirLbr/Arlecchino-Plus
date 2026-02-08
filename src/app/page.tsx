@@ -124,7 +124,7 @@ export default function HomePage() {
             {/* Description */}
             <p className="max-w-2xl mx-auto text-white/80 text-lg">
               Erleben Sie authentische italienische Pizza, zubereitet von unserem
-              preisgekrönten Pizzaiolo Tonino Pisano. Aus dem Steinofen direkt zu Ihnen.
+              preisgekrönten Pizzaiolo Tonino Pisano. Aus dem Holzofen direkt zu Ihnen.
             </p>
 
             {/* CTAs */}
