@@ -77,13 +77,13 @@ const upcomingReservations = [
 ];
 
 const statusColors: Record<string, string> = {
-  PENDING: 'bg-yellow-100 text-yellow-800',
-  CONFIRMED: 'bg-blue-100 text-blue-800',
-  PREPARING: 'bg-orange-100 text-orange-800',
-  IN_OVEN: 'bg-red-100 text-red-800',
-  READY: 'bg-green-100 text-green-800',
-  OUT_FOR_DELIVERY: 'bg-purple-100 text-purple-800',
-  DELIVERED: 'bg-gray-100 text-gray-800',
+  PENDING: 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400',
+  CONFIRMED: 'bg-blue-500/20 text-blue-700 dark:text-blue-400',
+  PREPARING: 'bg-orange-500/20 text-orange-700 dark:text-orange-400',
+  IN_OVEN: 'bg-red-500/20 text-red-700 dark:text-red-400',
+  READY: 'bg-green-500/20 text-green-700 dark:text-green-400',
+  OUT_FOR_DELIVERY: 'bg-purple-500/20 text-purple-700 dark:text-purple-400',
+  DELIVERED: 'bg-gray-500/20 text-gray-700 dark:text-gray-400',
 };
 
 const statusLabels: Record<string, string> = {
@@ -113,7 +113,7 @@ export default function AdminDashboard() {
         </div>
 
         {stats.pendingOrders > 0 && (
-          <div className="flex items-center gap-2 bg-yellow-50 text-yellow-800 px-4 py-2 rounded-lg">
+          <div className="flex items-center gap-2 bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 px-4 py-2 rounded-lg">
             <AlertCircle className="h-5 w-5" />
             <span className="font-medium">
               {stats.pendingOrders} neue Bestellung(en) warten auf Bestätigung
@@ -136,7 +136,7 @@ export default function AdminDashboard() {
                 <p className="text-sm text-muted-foreground">Heutige Bestellungen</p>
                 <p className="text-3xl font-bold">{stats.todayOrders}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-brand-red-100 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-full bg-brand-red-600/10 flex items-center justify-center">
                 <ShoppingBag className="h-6 w-6 text-brand-red-600" />
               </div>
             </div>
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
                 <p className="text-sm text-muted-foreground">Heutiger Umsatz</p>
                 <p className="text-3xl font-bold">{formatPrice(stats.todayRevenue)}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-full bg-green-600/10 flex items-center justify-center">
                 <Euro className="h-6 w-6 text-green-600" />
               </div>
             </div>
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                 <p className="text-sm text-muted-foreground">Reservierungen heute</p>
                 <p className="text-3xl font-bold">{stats.todayReservations}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-full bg-blue-600/10 flex items-center justify-center">
                 <CalendarDays className="h-6 w-6 text-blue-600" />
               </div>
             </div>
@@ -189,7 +189,7 @@ export default function AdminDashboard() {
                 <p className="text-sm text-muted-foreground">Ø Zubereitungszeit</p>
                 <p className="text-3xl font-bold">{stats.avgPrepTime} Min</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
+              <div className="h-12 w-12 rounded-full bg-orange-600/10 flex items-center justify-center">
                 <Clock className="h-6 w-6 text-orange-600" />
               </div>
             </div>
@@ -220,7 +220,7 @@ export default function AdminDashboard() {
               {recentOrders.map((order) => (
                 <div
                   key={order.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-muted rounded-lg"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
@@ -263,10 +263,10 @@ export default function AdminDashboard() {
               {upcomingReservations.map((res) => (
                 <div
                   key={res.id}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  className="flex items-center justify-between p-3 bg-muted rounded-lg"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-brand-cream-100 flex items-center justify-center text-sm font-semibold">
+                    <div className="h-10 w-10 rounded-full bg-brand-red-600/10 flex items-center justify-center text-sm font-semibold text-brand-red-600">
                       {res.time}
                     </div>
                     <div>
@@ -279,8 +279,8 @@ export default function AdminDashboard() {
                   <Badge
                     className={
                       res.status === 'CONFIRMED'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
+                        ? 'bg-green-500/20 text-green-700 dark:text-green-400'
+                        : 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400'
                     }
                   >
                     {res.status === 'CONFIRMED' ? 'Bestätigt' : 'Ausstehend'}
