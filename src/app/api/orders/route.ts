@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
 import { z } from 'zod';
+import { getCurrentCustomer, recordWelcomeOfferUsage, checkWelcomeOfferEligibility } from '@/lib/customer-auth';
 
 // Schema for order items
 const orderItemSchema = z.object({
@@ -52,6 +53,9 @@ const createOrderSchema = z.object({
   // Notes
   orderNotes: z.string().optional(),
   couponCode: z.string().optional(),
+
+  // Welcome offer
+  useWelcomeOffer: z.boolean().optional(),
 });
 
 // Generate order number
@@ -91,6 +95,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = createOrderSchema.parse(body);
 
+    // Check if customer is logged in
+    const customerSession = await getCurrentCustomer();
+    let welcomeOfferDiscount = 0;
+
+    // Handle welcome offer
+    if (validatedData.useWelcomeOffer && validatedData.subtotal >= 25) {
+      const eligibility = await checkWelcomeOfferEligibility(
+        validatedData.email,
+        validatedData.phone,
+        validatedData.firstName,
+        validatedData.lastName
+      );
+
+      if (eligibility.eligible) {
+        welcomeOfferDiscount = 10;
+      }
+    }
+
     // Generate unique order number
     let orderNumber = generateOrderNumber();
     let attempts = 0;
@@ -107,6 +129,7 @@ export async function POST(request: NextRequest) {
     const order = await prisma.order.create({
       data: {
         orderNumber,
+        customerId: customerSession?.id || null,
         customerFirstName: validatedData.firstName,
         customerLastName: validatedData.lastName,
         customerEmail: validatedData.email,
@@ -121,8 +144,8 @@ export async function POST(request: NextRequest) {
         subtotal: validatedData.subtotal,
         deliveryFee: validatedData.deliveryFee,
         tip: validatedData.tip,
-        discount: validatedData.discount,
-        total: validatedData.total,
+        discount: validatedData.discount + welcomeOfferDiscount,
+        total: validatedData.total - welcomeOfferDiscount,
         paymentMethod: mapPaymentMethod(validatedData.paymentMethod),
         paymentStatus: 'PENDING', // Will be updated to PAID after payment success
         status: 'PENDING', // Will be updated to CONFIRMED after payment success
@@ -158,10 +181,24 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Record welcome offer usage if applied
+    if (welcomeOfferDiscount > 0) {
+      await recordWelcomeOfferUsage(
+        validatedData.email,
+        validatedData.phone,
+        validatedData.firstName,
+        validatedData.lastName,
+        order.id,
+        customerSession?.id || null,
+        welcomeOfferDiscount
+      );
+    }
+
     return NextResponse.json({
       success: true,
       orderNumber: order.orderNumber,
       id: order.id,
+      welcomeOfferApplied: welcomeOfferDiscount > 0,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {

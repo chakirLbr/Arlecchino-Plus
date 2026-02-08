@@ -4,12 +4,17 @@ import * as React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Phone } from 'lucide-react';
+import { Menu, X, Phone, User, LogIn } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { CartSidebar } from '@/components/cart/cart-sidebar';
 import { ThemeToggle } from '@/components/theme/theme-toggle';
+
+interface CustomerSession {
+  id: string;
+  firstName: string;
+}
 
 const navigation = [
   { name: 'Speisekarte', href: '/speisekarte' },
@@ -22,6 +27,7 @@ export function Header() {
   const pathname = usePathname();
   const [isScrolled, setIsScrolled] = React.useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
+  const [customer, setCustomer] = React.useState<CustomerSession | null>(null);
 
   React.useEffect(() => {
     const handleScroll = () => {
@@ -31,6 +37,22 @@ export function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Check customer authentication
+  React.useEffect(() => {
+    async function checkAuth() {
+      try {
+        const response = await fetch('/api/customer/auth/me');
+        if (response.ok) {
+          const data = await response.json();
+          setCustomer({ id: data.customer.id, firstName: data.customer.firstName });
+        }
+      } catch {
+        // Not logged in
+      }
+    }
+    checkAuth();
+  }, [pathname]);
 
   return (
     <header
@@ -89,6 +111,23 @@ export function Header() {
               <span>02129 6663</span>
             </a>
 
+            {/* Account Button - Desktop */}
+            {customer ? (
+              <Link href="/konto" className="hidden lg:block">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <User className="h-4 w-4" />
+                  {customer.firstName}
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/konto/login" className="hidden lg:block">
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <LogIn className="h-4 w-4" />
+                  Anmelden
+                </Button>
+              </Link>
+            )}
+
             {/* Theme Toggle */}
             <ThemeToggle />
 
@@ -128,6 +167,27 @@ export function Header() {
                       </Link>
                     ))}
                   </nav>
+
+                  {/* Mobile Account */}
+                  {customer ? (
+                    <Link
+                      href="/konto"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center space-x-2 text-foreground/80 hover:text-brand-red-600"
+                    >
+                      <User className="h-5 w-5" />
+                      <span>Mein Konto ({customer.firstName})</span>
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/konto/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center space-x-2 text-foreground/80 hover:text-brand-red-600"
+                    >
+                      <LogIn className="h-5 w-5" />
+                      <span>Anmelden / Registrieren</span>
+                    </Link>
+                  )}
 
                   {/* Mobile Phone */}
                   <a

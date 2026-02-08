@@ -45,6 +45,49 @@ export async function PATCH(
           status: validatedData.status,
         },
       });
+
+      // Create customer notification if order belongs to a logged-in customer
+      if (order.customerId) {
+        const statusMessages: Record<string, { title: string; message: string }> = {
+          CONFIRMED: {
+            title: 'Bestellung bestätigt',
+            message: `Ihre Bestellung ${order.orderNumber} wurde bestätigt und wird nun zubereitet.`,
+          },
+          PREPARING: {
+            title: 'Wird zubereitet',
+            message: `Ihre Bestellung ${order.orderNumber} wird gerade frisch zubereitet.`,
+          },
+          IN_OVEN: {
+            title: 'Im Holzofen',
+            message: `Ihre Pizza aus Bestellung ${order.orderNumber} backt gerade im Holzofen.`,
+          },
+          READY: {
+            title: 'Bestellung fertig',
+            message: `Ihre Bestellung ${order.orderNumber} ist fertig und wartet auf Sie!`,
+          },
+          OUT_FOR_DELIVERY: {
+            title: 'Unterwegs zu Ihnen',
+            message: `Ihre Bestellung ${order.orderNumber} ist auf dem Weg zu Ihnen.`,
+          },
+          DELIVERED: {
+            title: 'Bestellung geliefert',
+            message: `Ihre Bestellung ${order.orderNumber} wurde geliefert. Guten Appetit!`,
+          },
+        };
+
+        const notification = statusMessages[validatedData.status];
+        if (notification) {
+          await prisma.customerNotification.create({
+            data: {
+              customerId: order.customerId,
+              type: 'order_status',
+              title: notification.title,
+              message: notification.message,
+              link: `/bestellung/${order.orderNumber}`,
+            },
+          });
+        }
+      }
     }
 
     return NextResponse.json({

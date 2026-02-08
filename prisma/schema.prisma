@@ -33,26 +33,27 @@ model Category {
 }
 
 model MenuItem {
-  id            String         @id @default(cuid())
+  id            String             @id @default(cuid())
   categoryId    String
-  category      Category       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  category      Category           @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   name          String
   nameEn        String?
   description   String?
   descriptionEn String?
-  basePrice     Decimal        @db.Decimal(10, 2)
+  basePrice     Decimal            @db.Decimal(10, 2)
   image         String?
-  allergens     String[]       // Array of allergen codes: GLUTEN, DAIRY, NUTS, etc.
-  spiceLevel    Int            @default(0) // 0 = not spicy, 1-3 = spice levels
-  isVegetarian  Boolean        @default(false)
-  isVegan       Boolean        @default(false)
-  isAvailable   Boolean        @default(true)
-  sortOrder     Int            @default(0)
+  allergens     String[]           // Array of allergen codes: GLUTEN, DAIRY, NUTS, etc.
+  spiceLevel    Int                @default(0) // 0 = not spicy, 1-3 = spice levels
+  isVegetarian  Boolean            @default(false)
+  isVegan       Boolean            @default(false)
+  isAvailable   Boolean            @default(true)
+  sortOrder     Int                @default(0)
   sizes         MenuItemSize[]
-  addOns        AddOn[]        @relation("MenuItemAddOns")
+  addOns        AddOn[]            @relation("MenuItemAddOns")
   orderItems    OrderItem[]
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  favoritedBy   CustomerFavorite[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   @@index([categoryId])
   @@index([isAvailable])
@@ -125,7 +126,11 @@ model Order {
   id                   String               @id @default(cuid())
   orderNumber          String               @unique // Human-readable: AP-2025-001234
 
-  // Customer Information
+  // Customer Account (optional - for logged-in users)
+  customerId           String?
+  customer             Customer?            @relation(fields: [customerId], references: [id])
+
+  // Customer Information (stored for all orders)
   customerEmail        String
   customerPhone        String
   customerFirstName    String
@@ -179,6 +184,7 @@ model Order {
   updatedAt            DateTime             @updatedAt
 
   @@index([orderNumber])
+  @@index([customerId])
   @@index([customerEmail])
   @@index([customerPhone])
   @@index([status])
@@ -267,7 +273,11 @@ model Reservation {
   id                String            @id @default(cuid())
   reservationNumber String            @unique // AR-2025-001234
 
-  // Guest Information
+  // Customer Account (optional - for logged-in users)
+  customerId        String?
+  customer          Customer?         @relation(fields: [customerId], references: [id])
+
+  // Guest Information (stored for all reservations)
   guestFirstName    String
   guestLastName     String
   guestEmail        String
@@ -296,6 +306,7 @@ model Reservation {
   cancelledAt       DateTime?
 
   @@index([date])
+  @@index([customerId])
   @@index([status])
   @@index([guestEmail])
   @@index([guestPhone])
@@ -327,6 +338,91 @@ model AdminUser {
 
   @@index([email])
   @@index([isActive])
+}
+
+// ============================================
+// CUSTOMER AUTHENTICATION
+// ============================================
+
+model Customer {
+  id                 String               @id @default(cuid())
+  email              String               @unique
+  emailVerified      Boolean              @default(false)
+  passwordHash       String
+  firstName          String
+  lastName           String
+  phone              String?
+  phoneVerified      Boolean              @default(false)
+
+  // Profile
+  defaultAddress     String?
+  defaultCity        String?
+  defaultPostalCode  String?
+
+  // New customer discount tracking
+  hasUsedWelcomeOffer Boolean             @default(false)
+  welcomeOfferUsedAt  DateTime?
+
+  // Timestamps
+  lastLoginAt        DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  // Relations
+  orders             Order[]
+  reservations       Reservation[]
+  favorites          CustomerFavorite[]
+  notifications      CustomerNotification[]
+
+  @@index([email])
+  @@index([phone])
+  @@index([firstName, lastName])
+}
+
+model CustomerFavorite {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  menuItemId  String
+  menuItem    MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([customerId, menuItemId])
+  @@index([customerId])
+  @@index([menuItemId])
+}
+
+model CustomerNotification {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type        String   // 'order_status', 'reservation_confirmed', 'promotion'
+  title       String
+  message     String
+  link        String?  // e.g., /bestellung/AP-2025-001234
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([customerId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+// Track used welcome offers to prevent abuse
+model WelcomeOfferUsage {
+  id         String   @id @default(cuid())
+  email      String
+  phone      String?
+  firstName  String
+  lastName   String
+  orderId    String   @unique
+  customerId String?
+  discount   Decimal  @db.Decimal(10, 2)
+  createdAt  DateTime @default(now())
+
+  @@index([email])
+  @@index([phone])
+  @@index([firstName, lastName])
 }
 
 model AuditLog {
