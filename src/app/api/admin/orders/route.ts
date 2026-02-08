@@ -41,13 +41,19 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
-    const filter = searchParams.get('filter'); // 'active', 'completed', 'all'
+    const filter = searchParams.get('filter'); // 'active', 'completed', 'all', 'pending'
 
     // Build where clause
-    const where: Record<string, unknown> = {
-      // Only show orders with completed payment (not pending)
-      paymentStatus: { not: 'PENDING' },
-    };
+    const where: Record<string, unknown> = {};
+
+    // Filter by payment status
+    if (filter === 'pending') {
+      // Show only orders with pending payment (for analytics)
+      where.paymentStatus = 'PENDING';
+    } else {
+      // By default, only show orders with completed payment
+      where.paymentStatus = { not: 'PENDING' };
+    }
 
     if (status) {
       where.status = status;

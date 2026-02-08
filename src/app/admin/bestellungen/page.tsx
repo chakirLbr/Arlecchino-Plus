@@ -211,9 +211,21 @@ export default function OrdersPage() {
       </div>
 
       {error && (
-        <Card className="bg-red-50 border-red-200">
-          <CardContent className="p-4 text-red-800">
+        <Card className="bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800">
+          <CardContent className="p-4 text-red-800 dark:text-red-200">
             {error}
+          </CardContent>
+        </Card>
+      )}
+
+      {filter === 'pending' && (
+        <Card className="bg-orange-50 border-orange-200 dark:bg-orange-900/20 dark:border-orange-800">
+          <CardContent className="p-4 text-orange-800 dark:text-orange-200">
+            <p className="font-medium">Unbezahlte Bestellungen</p>
+            <p className="text-sm mt-1">
+              Diese Bestellungen haben die Zahlung nicht abgeschlossen.
+              Sie können hier sehen, ob Kunden Probleme beim Bezahlen haben.
+            </p>
           </CardContent>
         </Card>
       )}
@@ -229,7 +241,7 @@ export default function OrdersPage() {
             className="pl-9"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button
             variant={filter === 'active' ? 'default' : 'outline'}
             onClick={() => setFilter('active')}
@@ -247,6 +259,13 @@ export default function OrdersPage() {
             onClick={() => setFilter('all')}
           >
             Alle
+          </Button>
+          <Button
+            variant={filter === 'pending' ? 'default' : 'outline'}
+            onClick={() => setFilter('pending')}
+            className={filter === 'pending' ? '' : 'border-dashed text-muted-foreground'}
+          >
+            Unbezahlt ({filter === 'pending' ? filteredOrders.length : '?'})
           </Button>
         </div>
       </div>
@@ -282,7 +301,7 @@ export default function OrdersPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         {/* Header */}
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
                           <span className="font-mono font-semibold">
                             {order.orderNumber}
                           </span>
@@ -293,6 +312,11 @@ export default function OrdersPage() {
                           <Badge variant="outline">
                             {order.orderType === 'DELIVERY' ? 'Lieferung' : 'Abholung'}
                           </Badge>
+                          {order.paymentStatus === 'PENDING' && (
+                            <Badge variant="destructive" className="bg-orange-500">
+                              Zahlung ausstehend
+                            </Badge>
+                          )}
                         </div>
 
                         {/* Customer */}
