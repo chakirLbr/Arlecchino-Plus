@@ -273,6 +273,17 @@ export default function MenuPage() {
               )}
             </div>
           </div>
+          {/* Payment Methods */}
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-3 border-t mt-3">
+            <span className="text-xs text-muted-foreground mr-2">Zahlungsarten:</span>
+            <span className="px-2 py-0.5 bg-muted border rounded text-xs">💳 Karte</span>
+            <span className="px-2 py-0.5 bg-muted border rounded text-xs">🍎 Apple Pay</span>
+            <span className="px-2 py-0.5 bg-muted border rounded text-xs">🔵 Google Pay</span>
+            <span className="px-2 py-0.5 bg-muted border rounded text-xs">🅿️ PayPal</span>
+            <span className="px-2 py-0.5 bg-muted border rounded text-xs">🛒 Klarna</span>
+            <span className="px-2 py-0.5 bg-muted border rounded text-xs">🏦 SEPA</span>
+            <span className="px-2 py-0.5 bg-muted border rounded text-xs">⚡ Sofort</span>
+          </div>
         </div>
       </div>
 

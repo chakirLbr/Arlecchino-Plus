@@ -742,6 +742,21 @@ export default function CheckoutPage() {
                     <span>Gesamt</span>
                     <span>{formatPrice(getTotal() + formData.tip)}</span>
                   </div>
+
+                  {/* Payment Methods */}
+                  <Separator className="my-4" />
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground text-center">Sichere Zahlungsarten</p>
+                    <div className="flex flex-wrap justify-center gap-1">
+                      <span className="px-1.5 py-0.5 bg-muted border rounded text-[10px]">💳 Karte</span>
+                      <span className="px-1.5 py-0.5 bg-muted border rounded text-[10px]">🍎 Apple Pay</span>
+                      <span className="px-1.5 py-0.5 bg-muted border rounded text-[10px]">🔵 Google Pay</span>
+                      <span className="px-1.5 py-0.5 bg-muted border rounded text-[10px]">🅿️ PayPal</span>
+                      <span className="px-1.5 py-0.5 bg-muted border rounded text-[10px]">🛒 Klarna</span>
+                      <span className="px-1.5 py-0.5 bg-muted border rounded text-[10px]">🏦 SEPA</span>
+                      <span className="px-1.5 py-0.5 bg-muted border rounded text-[10px]">⚡ Sofort</span>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </div>
