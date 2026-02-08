@@ -111,6 +111,10 @@ export default function HomePage() {
 
             {/* Headline */}
             <div className="space-y-4">
+              {/* Restaurant Name with Neon Effect */}
+              <h2 className="font-heading text-3xl sm:text-4xl lg:text-5xl font-bold neon-sign">
+                Arlecchino<span className="neon-glow">+</span>
+              </h2>
               <h1 className="font-heading text-4xl font-bold tracking-tight text-white sm:text-5xl lg:text-7xl drop-shadow-lg">
                 Holzofenpizza
                 <br />

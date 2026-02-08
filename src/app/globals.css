@@ -301,3 +301,70 @@
 .animate-pulse-ring {
   animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
 }
+
+/* Neon sign blinking animation */
+@keyframes neon-flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    text-shadow:
+      0 0 4px #fff,
+      0 0 11px #fff,
+      0 0 19px #fff,
+      0 0 40px #dc2626,
+      0 0 80px #dc2626,
+      0 0 90px #dc2626,
+      0 0 100px #dc2626,
+      0 0 150px #dc2626;
+    opacity: 1;
+  }
+  20%, 24%, 55% {
+    text-shadow: none;
+    opacity: 0.8;
+  }
+}
+
+@keyframes neon-flicker-dark {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    text-shadow:
+      0 0 4px #fff,
+      0 0 11px #fff,
+      0 0 19px #fff,
+      0 0 40px #f87171,
+      0 0 80px #f87171,
+      0 0 90px #f87171,
+      0 0 100px #f87171,
+      0 0 150px #f87171;
+    opacity: 1;
+  }
+  20%, 24%, 55% {
+    text-shadow: none;
+    opacity: 0.8;
+  }
+}
+
+.neon-sign {
+  animation: neon-flicker 3s infinite alternate;
+  color: #fff;
+}
+
+.dark .neon-sign {
+  animation: neon-flicker-dark 3s infinite alternate;
+}
+
+/* Neon sign glow effect (non-animated version for "+" symbol) */
+.neon-glow {
+  text-shadow:
+    0 0 4px #84cc16,
+    0 0 11px #84cc16,
+    0 0 19px #84cc16,
+    0 0 40px #84cc16;
+  color: #a3e635;
+}
+
+.dark .neon-glow {
+  text-shadow:
+    0 0 4px #bef264,
+    0 0 11px #bef264,
+    0 0 19px #bef264,
+    0 0 40px #bef264;
+  color: #bef264;
+}
