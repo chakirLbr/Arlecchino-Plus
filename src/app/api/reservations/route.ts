@@ -55,6 +55,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Create admin notification for the new reservation
+    await prisma.adminNotification.create({
+      data: {
+        type: 'RESERVATION',
+        referenceId: reservation.id,
+        title: `Neue Reservierung ${reservation.reservationNumber}`,
+        message: `${validatedData.firstName} ${validatedData.lastName} - ${validatedData.partySize} Personen, ${validatedData.time} Uhr`,
+        link: `/admin/reservierungen?reservation=${reservation.id}`,
+      },
+    });
+
     return NextResponse.json({
       success: true,
       reservationNumber: reservation.reservationNumber,

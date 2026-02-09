@@ -445,6 +445,31 @@ model AuditLog {
 }
 
 // ============================================
+// ADMIN NOTIFICATIONS
+// ============================================
+
+enum AdminNotificationType {
+  ORDER
+  RESERVATION
+}
+
+model AdminNotification {
+  id          String                @id @default(cuid())
+  type        AdminNotificationType
+  referenceId String                // orderId or reservationId
+  title       String
+  message     String
+  link        String                // e.g., /admin/bestellungen or /admin/reservierungen
+  read        Boolean               @default(false)
+  readAt      DateTime?
+  createdAt   DateTime              @default(now())
+
+  @@index([read])
+  @@index([createdAt])
+  @@index([type])
+}
+
+// ============================================
 // SETTINGS & CONFIGURATION
 // ============================================
 

@@ -1,6 +1,19 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 
+// Type for AdminNotification from database
+interface AdminNotificationRecord {
+  id: string;
+  type: string;
+  referenceId: string;
+  title: string;
+  message: string;
+  link: string;
+  read: boolean;
+  readAt: Date | null;
+  createdAt: Date;
+}
+
 // Helper to format time ago
 function timeAgo(date: Date): string {
   const now = new Date();
@@ -16,117 +29,57 @@ function timeAgo(date: Date): string {
   return `Vor ${days} Tagen`;
 }
 
-// Check if notification is "new" (less than 30 minutes old)
-function isNewNotification(date: Date): boolean {
-  const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
-  return date > thirtyMinutesAgo;
-}
-
-// GET - Fetch notifications (recent orders and reservations)
+// GET - Fetch notifications from database
 export async function GET() {
   try {
-    // Get recent orders (last 24 hours, only PAID orders with status CONFIRMED)
-    const recentOrders = await db.order.findMany({
+    // Get notifications from database (last 24 hours)
+    const notifications = await db.adminNotification.findMany({
       where: {
         createdAt: {
           gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
         },
-        // Only show orders that have completed payment
-        paymentStatus: 'PAID',
-        status: 'CONFIRMED',
       },
       orderBy: { createdAt: 'desc' },
-      take: 10,
-      select: {
-        id: true,
-        orderNumber: true,
-        customerFirstName: true,
-        customerLastName: true,
-        total: true,
-        status: true,
-        orderType: true,
-        createdAt: true,
-      },
+      take: 20,
     });
 
-    // Get recent reservations (last 24 hours, status PENDING)
-    const recentReservations = await db.reservation.findMany({
-      where: {
-        createdAt: {
-          gte: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        },
-        status: 'PENDING',
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 10,
-      select: {
-        id: true,
-        reservationNumber: true,
-        guestFirstName: true,
-        guestLastName: true,
-        date: true,
-        time: true,
-        partySize: true,
-        status: true,
-        createdAt: true,
-      },
-    });
-
-    // Transform to notification format
-    const orderNotifications = recentOrders.map((order) => ({
-      id: `order-${order.id}`,
-      type: 'order' as const,
-      title: `Neue Bestellung ${order.orderNumber}`,
-      message: `${order.customerFirstName} ${order.customerLastName} - ${Number(order.total).toFixed(2)} € (${order.orderType === 'DELIVERY' ? 'Lieferung' : 'Abholung'})`,
-      time: timeAgo(order.createdAt),
-      timestamp: order.createdAt.getTime(),
-      // New orders (< 30 min) are unread
-      read: !isNewNotification(order.createdAt),
-      link: `/admin/bestellungen?order=${order.id}`,
+    // Transform to response format
+    const formattedNotifications = (notifications as AdminNotificationRecord[]).map((notification: AdminNotificationRecord) => ({
+      id: notification.id,
+      type: notification.type.toLowerCase() as 'order' | 'reservation',
+      title: notification.title,
+      message: notification.message,
+      time: timeAgo(notification.createdAt),
+      read: notification.read,
+      link: notification.link,
     }));
 
-    const reservationNotifications = recentReservations.map((res) => ({
-      id: `reservation-${res.id}`,
-      type: 'reservation' as const,
-      title: `Neue Reservierung ${res.reservationNumber}`,
-      message: `${res.guestFirstName} ${res.guestLastName} - ${res.partySize} Personen, ${res.time} Uhr`,
-      time: timeAgo(res.createdAt),
-      timestamp: res.createdAt.getTime(),
-      read: false, // Reservations are unread until confirmed
-      link: `/admin/reservierungen?reservation=${res.id}`,
-    }));
-
-    // Combine and sort by timestamp (most recent first)
-    const allNotifications = [...orderNotifications, ...reservationNotifications]
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .map(({ timestamp, ...notification }) => notification); // Remove timestamp from response
+    // Count unread
+    const unreadCount = (notifications as AdminNotificationRecord[]).filter((n: AdminNotificationRecord) => !n.read).length;
 
     return NextResponse.json({
-      notifications: allNotifications.slice(0, 15),
+      notifications: formattedNotifications,
+      unreadCount,
     });
   } catch (error) {
     console.error('Failed to fetch notifications:', error);
-    return NextResponse.json({ notifications: [] });
+    return NextResponse.json({ notifications: [], unreadCount: 0 });
   }
 }
 
-// PATCH - Mark notification as read (updates order status or reservation)
+// PATCH - Mark notification(s) as read
 export async function PATCH(request: Request) {
   try {
     const body = await request.json();
     const { id, markAll } = body;
 
     if (markAll) {
-      // Mark all confirmed paid orders as acknowledged (don't affect unpaid orders)
-      // Note: We don't change order status here anymore since CONFIRMED orders are already confirmed
-      // This is mainly for reservations now
-
-      // Mark all pending reservations as confirmed
-      await db.reservation.updateMany({
-        where: { status: 'PENDING' },
+      // Mark all unread notifications as read
+      await db.adminNotification.updateMany({
+        where: { read: false },
         data: {
-          status: 'CONFIRMED',
-          confirmedAt: new Date(),
+          read: true,
+          readAt: new Date(),
         },
       });
 
@@ -134,22 +87,14 @@ export async function PATCH(request: Request) {
     }
 
     if (id) {
-      const [type, entityId] = id.split('-');
-
-      if (type === 'order') {
-        await db.order.update({
-          where: { id: entityId },
-          data: { status: 'CONFIRMED' },
-        });
-      } else if (type === 'reservation') {
-        await db.reservation.update({
-          where: { id: entityId },
-          data: {
-            status: 'CONFIRMED',
-            confirmedAt: new Date(),
-          },
-        });
-      }
+      // Mark single notification as read
+      await db.adminNotification.update({
+        where: { id },
+        data: {
+          read: true,
+          readAt: new Date(),
+        },
+      });
     }
 
     return NextResponse.json({ success: true });

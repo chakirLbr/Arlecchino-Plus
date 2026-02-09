@@ -47,6 +47,17 @@ export async function POST(
       },
     });
 
+    // Create admin notification for the new paid order
+    await prisma.adminNotification.create({
+      data: {
+        type: 'ORDER',
+        referenceId: updatedOrder.id,
+        title: `Neue Bestellung ${updatedOrder.orderNumber}`,
+        message: `${order.customerFirstName} ${order.customerLastName} - ${Number(order.total).toFixed(2)} € (${order.orderType === 'DELIVERY' ? 'Lieferung' : 'Abholung'})`,
+        link: `/admin/bestellungen?order=${updatedOrder.id}`,
+      },
+    });
+
     return NextResponse.json({
       success: true,
       orderNumber: updatedOrder.orderNumber,

@@ -24,43 +24,6 @@ interface Notification {
 // Default sound file
 const DEFAULT_SOUND = 'universfield-new-notification-033-480571';
 
-// Storage key for seen notifications
-const SEEN_NOTIFICATIONS_KEY = 'admin-seen-notifications';
-
-// Get seen notification IDs from localStorage
-function getSeenNotifications(): Set<string> {
-  try {
-    const stored = localStorage.getItem(SEEN_NOTIFICATIONS_KEY);
-    if (stored) {
-      return new Set(JSON.parse(stored));
-    }
-  } catch {}
-  return new Set();
-}
-
-// Save seen notification IDs to localStorage
-function saveSeenNotifications(ids: Set<string>) {
-  try {
-    // Keep only the last 100 IDs to prevent localStorage from growing too large
-    const idsArray = Array.from(ids).slice(-100);
-    localStorage.setItem(SEEN_NOTIFICATIONS_KEY, JSON.stringify(idsArray));
-  } catch {}
-}
-
-// Mark a notification as seen
-function markNotificationSeen(id: string) {
-  const seen = getSeenNotifications();
-  seen.add(id);
-  saveSeenNotifications(seen);
-}
-
-// Mark all notifications as seen
-function markAllNotificationsSeen(ids: string[]) {
-  const seen = getSeenNotifications();
-  ids.forEach((id) => seen.add(id));
-  saveSeenNotifications(seen);
-}
-
 // Audio instance for reuse
 let audioInstance: HTMLAudioElement | null = null;
 
@@ -92,20 +55,19 @@ function unlockAudio() {
 
 export function NotificationDropdown() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [seenIds, setSeenIds] = useState<Set<string>>(new Set());
-  const prevNotificationIdsRef = useRef<Set<string>>(new Set());
+  const prevUnreadCountRef = useRef<number | null>(null);
   const isFirstLoadRef = useRef(true);
 
-  // Load preferences and seen notifications
+  // Load sound preference
   useEffect(() => {
     const savedSound = localStorage.getItem('notification-sound');
     if (savedSound !== null) {
       setSoundEnabled(savedSound === 'true');
     }
-    setSeenIds(getSeenNotifications());
 
     // Unlock audio on user interaction
     const handleInteraction = () => {
@@ -135,32 +97,20 @@ export function NotificationDropdown() {
       if (response.ok) {
         const data = await response.json();
         const newNotifications: Notification[] = data.notifications || [];
+        const newUnreadCount: number = data.unreadCount || 0;
 
-        // Check for truly new notifications (not seen before)
-        const currentIds = new Set(newNotifications.map((n) => n.id));
-        const currentSeenIds = getSeenNotifications();
-
+        // Play sound if unread count increased (new notification arrived)
         if (!isFirstLoadRef.current && soundEnabled) {
-          // Find notifications that are new (not in previous fetch AND not seen)
-          for (const n of newNotifications) {
-            if (!prevNotificationIdsRef.current.has(n.id) && !currentSeenIds.has(n.id)) {
-              playNotificationSound();
-              break; // Play sound only once even if multiple new notifications
-            }
+          if (prevUnreadCountRef.current !== null && newUnreadCount > prevUnreadCountRef.current) {
+            playNotificationSound();
           }
         }
 
-        prevNotificationIdsRef.current = currentIds;
+        prevUnreadCountRef.current = newUnreadCount;
         isFirstLoadRef.current = false;
 
-        // Mark notifications as read based on seen status
-        const notificationsWithReadStatus = newNotifications.map((n) => ({
-          ...n,
-          read: currentSeenIds.has(n.id),
-        }));
-
-        setNotifications(notificationsWithReadStatus);
-        setSeenIds(currentSeenIds);
+        setNotifications(newNotifications);
+        setUnreadCount(newUnreadCount);
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
@@ -175,22 +125,40 @@ export function NotificationDropdown() {
     return () => clearInterval(interval);
   }, [fetchNotifications]);
 
-  // Calculate unread count based on seen status
-  const unreadCount = notifications.filter((n) => !seenIds.has(n.id)).length;
-
-  const markAsRead = (id: string) => {
-    markNotificationSeen(id);
-    setSeenIds((prev) => new Set([...prev, id]));
+  const markAsRead = async (id: string) => {
+    // Optimistic update
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: true } : n))
     );
+    setUnreadCount((prev) => Math.max(0, prev - 1));
+
+    // Update database
+    try {
+      await fetch('/api/admin/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      });
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    const allIds = notifications.map((n) => n.id);
-    markAllNotificationsSeen(allIds);
-    setSeenIds(new Set(allIds));
+  const markAllAsRead = async () => {
+    // Optimistic update
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    setUnreadCount(0);
+
+    // Update database
+    try {
+      await fetch('/api/admin/notifications', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markAll: true }),
+      });
+    } catch (error) {
+      console.error('Failed to mark all as read:', error);
+    }
   };
 
   const getIcon = (type: string) => {
@@ -265,17 +233,19 @@ export function NotificationDropdown() {
                 key={notification.id}
                 href={notification.link}
                 onClick={() => {
-                  markAsRead(notification.id);
+                  if (!notification.read) {
+                    markAsRead(notification.id);
+                  }
                   setOpen(false);
                 }}
                 className={cn(
                   'flex items-start gap-3 p-4 border-b last:border-b-0 hover:bg-muted transition-colors',
-                  !seenIds.has(notification.id) && 'bg-primary/5'
+                  !notification.read && 'bg-primary/5'
                 )}
               >
                 <div className="mt-0.5">{getIcon(notification.type)}</div>
                 <div className="flex-1 min-w-0">
-                  <p className={cn('text-sm', !seenIds.has(notification.id) && 'font-medium')}>
+                  <p className={cn('text-sm', !notification.read && 'font-medium')}>
                     {notification.title}
                   </p>
                   <p className="text-xs text-muted-foreground truncate">
@@ -285,7 +255,7 @@ export function NotificationDropdown() {
                     {notification.time}
                   </p>
                 </div>
-                {!seenIds.has(notification.id) && (
+                {!notification.read && (
                   <div className="h-2 w-2 rounded-full bg-brand-red-600 mt-2" />
                 )}
               </Link>
